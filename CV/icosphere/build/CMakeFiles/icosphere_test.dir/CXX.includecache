@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jack/VEX20/CV/icosphere/icosphere_test.cpp
+opencv2/cnn_3dobj.hpp
+/home/jack/VEX20/CV/icosphere/opencv2/cnn_3dobj.hpp
+opencv2/viz/vizcore.hpp
+/home/jack/VEX20/CV/icosphere/opencv2/viz/vizcore.hpp
+iostream
+-
+stdlib.h
+-
+time.h
+-
+

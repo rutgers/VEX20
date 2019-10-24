@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project( icosphere_test )
+set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
+find_package (OpenCV)
+set(CMAKE_BUILD_TYPE Debug)
+add_executable( icosphere_test icosphere_test.cpp )
+target_link_libraries( icosphere_test ${OpenCV_LIBS} )

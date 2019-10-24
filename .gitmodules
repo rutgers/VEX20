@@ -1,0 +1,3 @@
+[submodule "CV/PoseCNN"]
+	path = CV/PoseCNN
+	url = https://github.com/yuxng/PoseCNN

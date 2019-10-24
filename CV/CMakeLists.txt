@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 2.8)
+project( feature_matching )
+set(OpenCV_DIR /usr/local/lib/cmake/opencv4)
+find_package (OpenCV)
+set(CMAKE_BUILD_TYPE Debug)
+add_executable( feature_matching feature_matching.cpp )
+target_link_libraries( feature_matching ${OpenCV_LIBS} )

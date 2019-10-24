@@ -1,0 +1,3 @@
+/home/jack/VEX20/CV/icosphere/build/CMakeFiles/rebuild_cache.dir
+/home/jack/VEX20/CV/icosphere/build/CMakeFiles/icosphere_test.dir
+/home/jack/VEX20/CV/icosphere/build/CMakeFiles/edit_cache.dir

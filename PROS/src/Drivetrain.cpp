@@ -1,28 +1,38 @@
-#include "api.h"
-#include "PID.hpp"
 #include "Drivetrain.hpp"
+#include <vector>
 
 //Motors follow counter clockwise order, starting from frontR
 
-static std::list<double> pid_coeffs = {.75, 0, 0}
 
-Drivetrain::Drivetrain(std::list<int> ports, pros::motor_gearset_e gearset)
+Drivetrain::Drivetrain(std::vector<int> m_ports, pros::motor_gearset_e gearset)
 {
-  pros::Motor frontR(ports[0], pros::E_MOTOR_GEARSET_36);
-	pros::Motor frontL(ports[1], pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor rearL(ports[2], pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor rearR(ports[3], pros::E_MOTOR_GEARSET_36);
+  std::vector<double> pid_coeffs = {.75, 0, 0};
+
+  // pros::Motor *frontR = new pros::Motor(m_ports[0], gearset);
+	// pros::Motor *frontL = new pros::Motor(m_ports[1], gearset, 1);
+  // pros::Motor *midL = new pros::Motor(m_ports[2], gearset, 1);
+	// pros::Motor *rearL = new pros::Motor(m_ports[3], gearset, 1);
+	// pros::Motor *rearR = new pros::Motor(m_ports[4], gearset);
+  // pros::Motor *midR = new pros::Motor(m_ports[5], gearset);
+
+  pros::Motor frontR (m_ports[0], gearset);
+  pros::Motor frontL (m_ports[1], gearset, 1);
+  pros::Motor rearL (m_ports[2], gearset, 1);
+  pros::Motor rearR (m_ports[3], gearset);
 
 
-
-  std::list<PID> pid_controls;
-  for(int i = 0; i < 4; i++)
-  {
-    pid_controls.push_back(PID(pid_coeffs[0],pid_coeffs[1],pid_coeffs[2]))
-  }
+//   std::vector<pros::Motor *> motors = {frontR, frontL, midL, rearL, rearR, midR};
+//
+//   std::vector<PID> pid_controls = {};
+//   for(int i = 0; i < 6; i++)
+//   {
+//     pid_controls.push_back(PID(pid_coeffs[0],pid_coeffs[1],pid_coeffs[2]));
+//   }
 }
 
-void Drivetrain::set_power(double p)
-{
-
-}
+// void Drivetrain::set_power(double p)
+// {
+//   for(int i = 0; i < motors.size(); i++) {
+//     motors[i] -> move(p);
+//   }
+// }

@@ -1,5 +1,5 @@
 #include "main.h"
-#include "PID.hpp"
+#include "Drivetrain.hpp"
 
 /**
  * A callback function for LLEMU's center button.
@@ -28,6 +28,8 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+
+	//Drivetrain drivetrain = new Drivetrain({});
 }
 
 /**
@@ -79,7 +81,7 @@ void autonomous() {
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	
+
 
 	while (true) {
 
@@ -92,11 +94,6 @@ void opcontrol() {
 		pros::lcd::print(0, "y: %d\n", y);
 		pros::lcd::print(0, "turn: %d\n", turn);
 
-
-		driveRearR.move(y + x - 2*turn);
-    driveFrontR.move(y - x - 2*turn);
-  	driveRearL.move(y - x + 2*turn);
-    driveFrontL.move(y + x + 2*turn);
 
 		pros::delay(2	);
 	}

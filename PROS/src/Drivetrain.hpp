@@ -1,21 +1,26 @@
 #include "api.h"
 #include "PID.hpp"
+#include <vector>
 
 class Drivetrain
 {
 private:
-  pros::Motor rearR;
-  pros::Motor rearL;
-  pros::Motor frontR;
-  pros::Motor frontL;
-  std::list<pros::Motor> motors;
-  std::list<PID> pid_controls;
-  static std::list<double> pid_coeffs;
+  pros::Motor frontR(std::vector<int> , pros::motor_gearset_e);
+  pros::Motor frontL(std::vector<int> , pros::motor_gearset_e, bool);
+  pros::Motor midL(std::vector<int> , pros::motor_gearset_e, bool);
+  pros::Motor rearL(std::vector<int> , pros::motor_gearset_e, bool);
+  pros::Motor rearR(std::vector<int> , pros::motor_gearset_e, bool);
+  pros::Motor midR(std::vector<int> , pros::motor_gearset_e, bool);
 
+
+  std::vector<pros::Motor *> motors;
+  std::vector<PID> pid_controls;
+  std::vector<double> pid_coeffs;
 
   //Motors follow counter clockwise order, starting from frontR
 
 public:
-  Drivetrain(std::list<int> ports, pros::motor_gearset_e, gearset)
+  Drivetrain(std::vector<int> ports, pros::motor_gearset_e gearset);
+  void set_power(double p);
 
-}
+};

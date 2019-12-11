@@ -1,5 +1,6 @@
 #include "main.h"
-#include "PID.hpp"
+#include "Drivetrain.cpp"
+#include <vector>
 
 /**
  * A callback function for LLEMU's center button.
@@ -24,10 +25,12 @@ void on_center_button() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+	printf("initializing\n");
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+
 }
 
 /**
@@ -60,7 +63,10 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+	std::vector<int> m_ports = {19, 12, 11, 20};
+	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
+	drivetrain.drive_ticks(-3600);
 
 }
 
@@ -78,8 +84,13 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	
+	pros::Motor m1(20, pros::E_MOTOR_GEARSET_18);
+	std::vector<int> m_ports = {19, 12, 11, 20};
+	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
+
+	//master.print(1,1, "" + drivetrain.test());
 
 	while (true) {
 
@@ -89,15 +100,18 @@ void opcontrol() {
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 
 		pros::lcd::print(0, "x: %d\n", x);
-		pros::lcd::print(0, "y: %d\n", y);
-		pros::lcd::print(0, "turn: %d\n", turn);
+		pros::lcd::print(1, "y: %d\n", y);
+		pros::lcd::print(2, "turn: %d\n", turn);
 
+		if(turn != 0) {
+			drivetrain.turn(turn);
+		}
+		else {
+			drivetrain.drive(y);
+		}
+		//m1.move(x);
 
-		driveRearR.move(y + x - 2*turn);
-    driveFrontR.move(y - x - 2*turn);
-  	driveRearL.move(y - x + 2*turn);
-    driveFrontL.move(y + x + 2*turn);
-
-		pros::delay(2	);
+		pros::delay(2);
+		//pros::lcd::clear();
 	}
 }

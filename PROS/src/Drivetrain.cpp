@@ -48,9 +48,9 @@ public:
   	// pros::Motor *rearR = new pros::Motor(m_ports[4], gearset);
     // pros::Motor *midR = new pros::Motor(m_ports[5], gearset);
 
-    pros::Motor frontR (m_ports[0], gearset);
+    pros::Motor frontR (m_ports[0], gearset, 1);
     motors.push_back(frontR);
-    pros::Motor frontL (m_ports[1], gearset, 1);
+    pros::Motor frontL (m_ports[1], gearset);
     motors.push_back(frontL);
     pros::Motor rearL (m_ports[2], gearset);
     motors.push_back(rearL);
@@ -133,5 +133,17 @@ public:
       arrived = arrived && pid_controls[i].check_arrived();
     }
     return arrived;
+  }
+
+  void print_position() {
+    for(int i = 0; i < motors.size(); i++) {
+      printf(res, "Motor %d pos: %f\n", i, motors[i].get_position());
+    }
+
+  }
+
+  void turn(double degrees)
+  {
+    return;
   }
 };

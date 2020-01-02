@@ -1,6 +1,7 @@
 #include "api.h"
 #include "PID.hpp"
 #include <vector>
+#include <math.h>
 
 //Motors follow counter clockwise order, starting from frontR
 
@@ -19,16 +20,24 @@ private:
   double ki;
   double kd;
   double e_t;
-
+  double tpr;
+  double tpi;
+  double wheel_diameter;
   //Motors follow counter clockwise order, starting from frontR
 
 public:
   Drivetrain(std::vector<int> m_ports, pros::motor_gearset_e gearset)
   {
-    kp = .1;
+    kp = .2;
     ki = 0;
-    kd = 0;
-    e_t = 20;
+    kd = 10;
+    e_t = 100;
+    //green gearbox
+    tpr = 900;
+
+    wheel_diameter = 4;
+    tpi = tpr/(wheel_diameter*M_PI);
+    printf("tpi: %f\n",tpi);
 
 
     printf("constructing!\n");
@@ -78,35 +87,45 @@ public:
 
   void drive_ticks(double ticks)
   {
-    printf("hello %f\n", (ticks+motors[0].get_position()));
+
+    printf("ticks: %f\nmotor_pos: %f\n", ticks, motors[0].get_position());
     for(int i = 0; i < motors.size(); i++)
     {
       pid_controls[i].update_target(ticks+motors[i].get_position());
     }
 
-    int dt = 2;
-    int passed_time = 2;
+    static double dt = 2;
+    static double passed_time = 2;
     while(!check_arrived())
     {
 
       for(int i = 0; i < motors.size(); i++)
       {
         double output = pid_controls[i].update(motors[i].get_position(), dt);
-        if(abs(output) >= 1 && passed_time <= 1000) {
-          output = passed_time/1000;
+        double dir = abs(output)/output;
+        if(abs(output) >= 1 && passed_time <= 400) {
+          output = dir*passed_time/400;
         }
-        printf("%f", output);
-        motors[i].move(output);
+        printf("output: %f\npassed_time: %f\n", output, passed_time);
+        if(abs(output) >= 1) {
+          output = .7*dir;
+        }
+        motors[i].move(output*127);
       }
 
+      printf("loop_over!\n");
+      passed_time = passed_time+dt;
       pros::delay(dt);
-      passed_time += dt;
     }
-
+    printf("done moving!\n");
     drive(0);
 
   }
 
+  void drive_inches(double inches)
+  {
+    drive_ticks(inches*tpi);
+  }
   bool check_arrived()
   {
     bool arrived = true;

@@ -86,13 +86,15 @@ void autonomous() {
 void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor lift_R(18, pros::E_MOTOR_GEARSET_36);
-	pros::Motor lift_L(13, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36, 1);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-	std::vector<int> m_ports = {19, 12, 11, 20};
+	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
+
+	pros::Motor claw(21, pros::E_MOTOR_GEARSET_18, 1);
 
 	//master.print(1,1, "" + drivetrain.test());
 
@@ -132,10 +134,13 @@ void opcontrol() {
 		}
 
 		if(master.get_digital(DIGITAL_A)) {
-			drivetrain.drive_inches(12);
+			claw.move(60);
 		}
 		else if(master.get_digital(DIGITAL_B)) {
-			drivetrain.drive_inches(-12);
+			claw.move(-60);
+		}
+		else {
+			claw.move(0);
 		}
 
 		pros::delay(2);

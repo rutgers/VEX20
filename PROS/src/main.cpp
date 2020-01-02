@@ -86,7 +86,7 @@ void autonomous() {
 void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_R(5, pros::E_MOTOR_GEARSET_36);
 	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36, 1);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -101,11 +101,10 @@ void opcontrol() {
 	while (true) {
 
 
-		double x = master.get_analog(ANALOG_LEFT_X);
-		double y = master.get_analog(ANALOG_LEFT_Y);
-		double turn = master.get_analog(ANALOG_RIGHT_X);
+		double turn = master.get_analog(ANALOG_LEFT_X);
+		double y = master	.get_analog(ANALOG_LEFT_Y);
+		double lift = master.get_analog(ANALOG_RIGHT_Y);
 
-		pros::lcd::print(0, "x: %d\n", x);
 		pros::lcd::print(1, "y: %d\n", y);
 		pros::lcd::print(2, "turn: %d\n", turn);
 
@@ -116,28 +115,14 @@ void opcontrol() {
 			drivetrain.drive(y);
 		}
 
-		if(master.get_digital(DIGITAL_UP)) {
-			printf("lift up!\n");
-			lift_R.move(60);
-			lift_L.move(60);
-		}
-		else if(master.get_digital(DIGITAL_DOWN)) {
-			printf("lift down	!\n");
-			lift_R.move(-60);
-			lift_L.move(-60);
-		}
-		else {
-			lift_R.move(0);
-			lift_L.move(0);
-			lift_R.move_velocity(0);
-			lift_L.move_velocity(0);
-		}
+		lift_R.move(lift);
+		lift_L.move(lift);
 
 		if(master.get_digital(DIGITAL_A)) {
-			claw.move(60);
+			claw.move(255);
 		}
 		else if(master.get_digital(DIGITAL_B)) {
-			claw.move(-60);
+			claw.move(-255);
 		}
 		else {
 			claw.move(0);

@@ -23,6 +23,7 @@ private:
   double tpr;
   double tpi;
   double wheel_diameter;
+  double tpt;
   //Motors follow counter clockwise order, starting from frontR
 
 public:
@@ -35,7 +36,10 @@ public:
     //green gearbox
     tpr = 900;
 
+    //ticks per turn
+    tpt = 663*4;
     wheel_diameter = 4;
+
     tpi = tpr/(wheel_diameter*M_PI);
     printf("tpi: %f\n",tpi);
 
@@ -85,13 +89,15 @@ public:
     motors[3].move(-p);
   }
 
-  void drive_ticks(double ticks)
+
+  // TODO add a timeout in here
+  void drive_ticks(double ticks, std::vector<int> dirs, int max_power = 127)
   {
 
     printf("ticks: %f\nmotor_pos: %f\n", ticks, motors[0].get_position());
     for(int i = 0; i < motors.size(); i++)
     {
-      pid_controls[i].update_target(ticks+motors[i].get_position());
+      pid_controls[i].update_target(ticks*dirs[i]+motors[i].get_position());
     }
 
     static double dt = 2;
@@ -107,13 +113,14 @@ public:
           output = dir*passed_time/400;
         }
         printf("output: %f\npassed_time: %f\n", output, passed_time);
-        if(abs(output) >= 1) {
-          output = .7*dir;
+        if(abs(output) > 1) {
+          output = dir;
         }
-        motors[i].move(output*127);
+        motors[i].move(output*max_power);
       }
 
       printf("loop_over!\n");
+      print_position();
       passed_time = passed_time+dt;
       pros::delay(dt);
     }
@@ -122,9 +129,10 @@ public:
 
   }
 
-  void drive_inches(double inches)
+  void drive_inches(double inches,double max_power = 127)
   {
-    drive_ticks(inches*tpi);
+    std:: vector<int> dirs {1, 1, 1, 1};
+    drive_ticks(inches*tpi,dirs, max_power);
   }
   bool check_arrived()
   {
@@ -137,13 +145,14 @@ public:
 
   void print_position() {
     for(int i = 0; i < motors.size(); i++) {
-      printf(res, "Motor %d pos: %f\n", i, motors[i].get_position());
+      printf("Motor %d pos: %f\n", i, motors[i].get_position());
     }
 
   }
 
-  void turn(double degrees)
+  void turn_degrees(double degrees)
   {
-    return;
+    std::vector<int> dirs {1, -1, -1, 1};
+    drive_ticks(degrees/360*tpt, dirs, 40);
   }
 };

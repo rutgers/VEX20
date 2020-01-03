@@ -2,7 +2,34 @@
 #include "Drivetrain.cpp"
 #include <vector>
 
-double lift_place = 0;
+double lift_place = 9589;
+
+void move_lift(pros::Motor lift, double ticks) {
+
+	double kp = .2;
+	double ki = 0;
+	double kd = 10;
+	double e_t = 100;
+
+	PID ctrl(kp, ki, kd, e_t);
+	ctrl.update_target(ticks+lift.get_position());
+	ctrl.update(lift.get_position(),0);
+
+	double dt = 2;
+	while(!ctrl.check_arrived())
+	{
+
+			double output = ctrl.update(lift.get_position(), dt);
+			printf("lift output: %f\n", output);
+			lift.move(output*127);
+
+
+		printf("loop_over!\n");
+		pros::delay(dt);
+	}
+	printf("done moving!\n");
+	lift.move(0);
+}
 
 /**
  * A callback function for LLEMU's center button.
@@ -24,7 +51,7 @@ void on_center_button() {
  * Runs initialization code. This occurs as soon as the program is started.
  *
  * All other competition modes are blocked by initialize; it is recommended
- * to keep execution time for this mode under a few seconds.
+ *l to keep execution time for this mode under a few seconds.
  */
 void initialize() {
 	printf("initializing\n");
@@ -79,48 +106,46 @@ void autonomous() {
 	intake_L.move(255);
 
 	// Grabbing P1
-	drivetrain.drive_inches(36);
+	drivetrain.drive_inches(32, 80);
 
 	// Grabbing Green Cube
-	drivetrain.turn(45);
-	drivetrain.drive_inches(12*sqrt(2));
+	drivetrain.turn_degrees(45);
+	drivetrain.drive_inches(4*sqrt(2), 80);
 
 	intake_R.move(0);
 	intake_L.move(0);
 
 	// Going back to the wall
-	drivetrain.turn(-45);
-	drivetrain.drive_inches(-48);
-	drivetrain.drive_inches(6);
+	drivetrain.turn_degrees(-45);
+	drivetrain.drive_inches(-50,80);
+	drivetrain.drive_inches(6,80);
 
 	// Angling for P2
-	drivetrain.turn(90);
-	drivetrain.drive_inches(12);
-	drivetrain.turn(-90);
+	drivetrain.turn_degrees(90);
+	drivetrain.drive_inches(12,80);
+	drivetrain.turn_degrees(-90);
 
 	intake_R.move(255);
 	intake_L.move(255);
 
 	// Grabbing P2
-	drivetrain.drive_inches(42);
+	drivetrain.drive_inches(42,60);
 
 	intake_R.move(0);
 	intake_L.move(0);
 
 	//Angling for placing
-	drivetrain.drive_inches(-48);
-	drivetrain.drive_inches(6);
-	drivetrain.turn(-90);
-	drivetrain.drive_inches(36);
+	drivetrain.drive_inches(-48, 50);
+	drivetrain.drive_inches(3);
+	drivetrain.turn_degrees(-95);
+	drivetrain.drive_inches(36, 60);
 
 	// Placing
-	lift.move(255);
-	pros::delay(1000);
-	lift.move(0);
+	move_lift(lift, lift_place);
 
 	// Reverse and 180
-	drivetrain.drive_inches(-24);
-	drivetrain.turn(180);
+	drivetrain.drive_inches(-24, 50);
+	drivetrain.turn_degrees(180);
 
 }
 
@@ -178,10 +203,17 @@ void opcontrol() {
 			intake_R.move(-200);
 			intake_L.move(-200);
 		}
-		else {
+		else if(master.get_digital(DIGITAL_Y)){
+			printf("STOP TAKING!\n");
 			intake_R.move(0);
 			intake_L.move(0);
+		}
 
+		if(master.get_digital(DIGITAL_L1)) {
+			drivetrain.turn_degrees(180);
+		}
+		if(master.get_digital(DIGITAL_R1)) {
+			drivetrain.turn_degrees(-180);
 		}
 
 		if(master.get_digital(DIGITAL_UP)) {

@@ -32,7 +32,7 @@ public:
     kp = .2;
     ki = 0;
     kd = 10;
-    e_t = 100;
+    e_t = 200;
     //green gearbox
     tpr = 900;
 
@@ -91,7 +91,7 @@ public:
 
 
   // TODO add a timeout in here
-  void drive_ticks(double ticks, std::vector<int> dirs, int max_power = 127)
+  void drive_ticks(double ticks, std::vector<int> dirs, int max_power = 127, double timeout = 5000)
   {
 
     printf("ticks: %f\nmotor_pos: %f\n", ticks, motors[0].get_position());
@@ -101,7 +101,7 @@ public:
     }
 
     static double dt = 2;
-    static double passed_time = 2;
+    double passed_time = 2;
     while(!check_arrived())
     {
 
@@ -121,6 +121,10 @@ public:
 
       printf("loop_over!\n");
       print_position();
+      if(passed_time >= timeout) {
+        break;
+        printf("breaking!\n");
+      }
       passed_time = passed_time+dt;
       pros::delay(dt);
     }
@@ -129,10 +133,10 @@ public:
 
   }
 
-  void drive_inches(double inches,double max_power = 127)
+  void drive_inches(double inches,double max_power = 127, double timeout = 5000)
   {
     std:: vector<int> dirs {1, 1, 1, 1};
-    drive_ticks(inches*tpi,dirs, max_power);
+    drive_ticks(inches*tpi,dirs, max_power, timeout);
   }
   bool check_arrived()
   {
@@ -150,9 +154,9 @@ public:
 
   }
 
-  void turn_degrees(double degrees)
+  void turn_degrees(double degrees, double max_power = 40, double timeout = 5000)
   {
     std::vector<int> dirs {1, -1, -1, 1};
-    drive_ticks(degrees/360*tpt, dirs, 40);
+    drive_ticks(degrees/360*tpt, dirs, max_power, timeout);
   }
 };

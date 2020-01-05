@@ -96,6 +96,8 @@ void autonomous() {
 	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
+	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	pros::ADIDigitalIn lift_stop('A');
 	// lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	// lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -104,48 +106,51 @@ void autonomous() {
 
 	intake_R.move(255);
 	intake_L.move(255);
+	lift.move(0);
 
 	// Grabbing P1
-	drivetrain.drive_inches(32, 80);
+	drivetrain.drive_inches(34, 60, 2000);
 
 	// Grabbing Green Cube
-	drivetrain.turn_degrees(45);
-	drivetrain.drive_inches(4*sqrt(2), 80);
-
-	intake_R.move(0);
-	intake_L.move(0);
+	drivetrain.turn_degrees(30,50, 4000);
+	drivetrain.drive_inches(8*sqrt(2), 80, 3000);
 
 	// Going back to the wall
-	drivetrain.turn_degrees(-45);
-	drivetrain.drive_inches(-50,80);
-	drivetrain.drive_inches(6,80);
+	drivetrain.turn_degrees(-30, 50, 4000);
+	intake_R.move(0);
+	intake_L.move(0);
+	drivetrain.drive(-60);
+	pros::delay(3500);
+	drivetrain.drive_inches(10,80, 5000);
 
 	// Angling for P2
-	drivetrain.turn_degrees(90);
-	drivetrain.drive_inches(12,80);
-	drivetrain.turn_degrees(-90);
+	drivetrain.turn_degrees(90, 50, 7000);
+	drivetrain.drive_inches(18, 60, 5000);
+	drivetrain.turn_degrees(-90, 50, 7000);
 
 	intake_R.move(255);
 	intake_L.move(255);
 
 	// Grabbing P2
-	drivetrain.drive_inches(42,60);
+	drivetrain.drive_inches(42, 60, 5000);
 
 	intake_R.move(0);
 	intake_L.move(0);
 
 	//Angling for placing
-	drivetrain.drive_inches(-48, 50);
-	drivetrain.drive_inches(3);
-	drivetrain.turn_degrees(-95);
-	drivetrain.drive_inches(36, 60);
+	drivetrain.drive(-60);
+	pros::delay(3500);
+	drivetrain.drive_inches(6);
+	drivetrain.turn_degrees(-110, 70, 5000);
+	drivetrain.drive_inches(36, 50, 5000);
 
 	// Placing
 	move_lift(lift, lift_place);
+	pros::delay(1000);
 
 	// Reverse and 180
-	drivetrain.drive_inches(-24, 50);
-	drivetrain.turn_degrees(180);
+	drivetrain.drive_inches(-24, 40, 2000);
+	drivetrain.turn_degrees(180, 80);
 
 }
 
@@ -168,6 +173,7 @@ void opcontrol() {
 	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
+	pros::ADIDigitalIn lift_stop('A');
 	// lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	// lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -176,7 +182,14 @@ void opcontrol() {
 
 	//master.print(1,1, "" + drivetrain.test());
 
+	bool intaking = false;
+
 	while (true) {
+		double precision_mult = 1;
+
+		if(master.get_digital(DIGITAL_L2)) {
+			precision_mult = .5;
+		}
 
 
 		double x = master.get_analog(ANALOG_LEFT_X);
@@ -195,32 +208,28 @@ void opcontrol() {
 
 		if(master.get_digital(DIGITAL_A)) {
 			printf("intake!\n");
-			intake_R.move(200);
-			intake_L.move(200);
+			intake_R.move(127*precision_mult);
+			intake_L.move(127*precision_mult);
+			intaking = true;
 		}
 		else if(master.get_digital(DIGITAL_B)) {
 			printf("outtake!\n");
-			intake_R.move(-200);
-			intake_L.move(-200);
+			intake_R.move(-70*precision_mult);
+			intake_L.move(-70*precision_mult);
+			intaking = false;
 		}
-		else if(master.get_digital(DIGITAL_Y)){
+		else if(master.get_digital(DIGITAL_Y) || !intaking){
 			printf("STOP TAKING!\n");
 			intake_R.move(0);
 			intake_L.move(0);
-		}
-
-		if(master.get_digital(DIGITAL_L1)) {
-			drivetrain.turn_degrees(180);
-		}
-		if(master.get_digital(DIGITAL_R1)) {
-			drivetrain.turn_degrees(-180);
+			intaking = false;
 		}
 
 		if(master.get_digital(DIGITAL_UP)) {
-			lift.move(150);
+			lift.move(150*precision_mult);
 		}
-		else if(master.get_digital(DIGITAL_DOWN)) {
-			lift.move(-150);
+		else if(master.get_digital(DIGITAL_DOWN) && !lift_stop.get_value()) {
+			lift.move(-150*precision_mult);
 		}
 		else {
 			lift.move(0);

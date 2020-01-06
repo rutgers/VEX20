@@ -31,7 +31,7 @@ void PID::update_target(double new_target)
 double PID::update(double measure, double dt)
 {
   double err = target - measure;
-  printf("err: %f\n", err);
+  //printf("err: %f\n", err);
   error_sum += err*dt;
   double output = kp*err + ki*error_sum + kd*(err-last_err)/dt;
   last_err = err;

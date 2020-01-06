@@ -22,25 +22,32 @@ private:
   double e_t;
   double tpr;
   double tpi;
+  double tpi_strafe;
   double wheel_diameter;
+  double tpt_front;
+  double tpt_back;
   double tpt;
   //Motors follow counter clockwise order, starting from frontR
 
 public:
   Drivetrain(std::vector<int> m_ports, pros::motor_gearset_e gearset)
   {
-    kp = .2;
+    kp = .0045;
     ki = 0;
-    kd = 10;
-    e_t = 200;
+    kd = -.05;
+    e_t = 100;
     //green gearbox
     tpr = 900;
 
     //ticks per turn
-    tpt = 663*4;
+    tpt_front = 6675*4;
+    tpt_back = 663*4;
+    tpt = 730*4;
     wheel_diameter = 4;
 
     tpi = tpr/(wheel_diameter*M_PI);
+    //need to change this
+    tpi_strafe = tpi;
     printf("tpi: %f\n",tpi);
 
 
@@ -81,6 +88,12 @@ public:
 
   }
 
+  void drive_each(std::vector<double> powers){
+    for(int i = 0; i < motors.size(); i++) {
+      motors[i].move(powers[i]);
+    }
+  }
+
   void turn(double p)
   {
     motors[0].move(-p);
@@ -91,16 +104,19 @@ public:
 
 
   // TODO add a timeout in here
-  void drive_ticks(double ticks, std::vector<int> dirs, int max_power = 127, double timeout = 5000)
+  void drive_ticks(double ticks, std::vector<int> dirs, int max_power = 127, double timeout = 5000, std::vector<double> targets = {})
   {
+    if(targets.size() == 0) {
+      targets = {ticks, ticks, ticks, ticks};
+    }
 
     printf("ticks: %f\nmotor_pos: %f\n", ticks, motors[0].get_position());
     for(int i = 0; i < motors.size(); i++)
     {
-      pid_controls[i].update_target(ticks*dirs[i]+motors[i].get_position());
+      pid_controls[i].update_target(targets[i]*dirs[i]+motors[i].get_position());
     }
 
-    static double dt = 2;
+    double dt = 2;
     double passed_time = 2;
     while(!check_arrived())
     {
@@ -112,18 +128,20 @@ public:
         if(abs(output) >= 1 && passed_time <= 400) {
           output = dir*passed_time/400;
         }
-        printf("output: %f\npassed_time: %f\n", output, passed_time);
+        //printf("output: %f\npassed_time: %f\n", output, passed_time);
+        //print_position();
         if(abs(output) > 1) {
           output = dir;
         }
+        printf("target #%d: %f\noutput: %f\nposition: %f\n",i,pid_controls[i].get_target(), output,motors[i].get_position());
         motors[i].move(output*max_power);
       }
 
-      printf("loop_over!\n");
-      print_position();
+      //printf("loop_over!\n");
+      //print_position();
       if(passed_time >= timeout) {
-        break;
         printf("breaking!\n");
+        break;
       }
       passed_time = passed_time+dt;
       pros::delay(dt);
@@ -158,5 +176,11 @@ public:
   {
     std::vector<int> dirs {1, -1, -1, 1};
     drive_ticks(degrees/360*tpt, dirs, max_power, timeout);
+  }
+
+  void strafe(double inches, double max_power = 40, double tiemout = 5000)
+  {
+    std::vector<int> dirs {-1, 1, -1, 1};
+    drive_ticks(inches*tpi_strafe, dirs, max_power, timeout);
   }
 };

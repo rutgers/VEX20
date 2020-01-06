@@ -92,6 +92,8 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+
+	printf("STARTING AUTO\n\n\n\n\n\n\n\n\n\n\n\n\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
@@ -104,45 +106,55 @@ void autonomous() {
 	std::vector<int> m_ports = {14, 11, 13, 15};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
+	//chnge to build each side
+	bool red = true;
+	dir = -1;
+
+	if(red) {
+		dir = 1;
+	}
+
 	intake_R.move(255);
 	intake_L.move(255);
 	lift.move(0);
 
 	// Grabbing P1
-	drivetrain.drive_inches(34, 60, 2000);
-
-	// Grabbing Green Cube
-	drivetrain.turn_degrees(30,50, 4000);
-	drivetrain.drive_inches(8*sqrt(2), 80, 3000);
-
-	// Going back to the wall
-	drivetrain.turn_degrees(-30, 50, 4000);
-	intake_R.move(0);
-	intake_L.move(0);
+	drivetrain.drive_inches(38, 40, 5000);
+	//
+	// // Grabbing Green Cube
+	// drivetrain.turn_degrees(30, 50, 10000);
+	// drivetrain.drive_inches(8*sqrt(2), 50, 5000);
+	//
+	// // Going back to the wall
+	// drivetrain.turn_degrees(-30, 50, 10000);
+	drivetrain.strafe(-12*dir, 40, 2000);
+	drivetrain.drive_inches(10, 40, 2000);
 	drivetrain.drive(-60);
-	pros::delay(3500);
+	pros::delay(3000);
+	intake_R.move(10);
+	intake_L.move(10);
 	drivetrain.drive_inches(10,80, 5000);
 
-	// Angling for P2
-	drivetrain.turn_degrees(90, 50, 7000);
-	drivetrain.drive_inches(18, 60, 5000);
-	drivetrain.turn_degrees(-90, 50, 7000);
+	drivetrain.strafe(12*dir, 40, 3000);
+	drivetrain.drive(-60);
+	pros::delay(5000);
+	drivetrain.drive(0);
 
 	intake_R.move(255);
 	intake_L.move(255);
 
 	// Grabbing P2
-	drivetrain.drive_inches(42, 60, 5000);
+	drivetrain.drive_inches(42, 50, 5000);
 
-	intake_R.move(0);
-	intake_L.move(0);
+	intake_R.move(10);
+	intake_L.move(10);
 
 	//Angling for placing
 	drivetrain.drive(-60);
 	pros::delay(3500);
 	drivetrain.drive_inches(6);
-	drivetrain.turn_degrees(-110, 70, 5000);
-	drivetrain.drive_inches(36, 50, 5000);
+	drivetrain.turn_degrees(-105*dir, 70, 5000);
+	drivetrain.drive_inches(33, 50, 5000);
 
 	// Placing
 	move_lift(lift, lift_place);
@@ -150,7 +162,7 @@ void autonomous() {
 
 	// Reverse and 180
 	drivetrain.drive_inches(-24, 40, 2000);
-	drivetrain.turn_degrees(180, 80);
+	drivetrain.turn_degrees(180*dir, 80);
 
 }
 
@@ -174,11 +186,12 @@ void opcontrol() {
 	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
 	pros::ADIDigitalIn lift_stop('A');
-	// lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	// lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 	std::vector<int> m_ports = {14, 11, 13, 15};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
+
+
 
 	//master.print(1,1, "" + drivetrain.test());
 
@@ -187,52 +200,66 @@ void opcontrol() {
 	while (true) {
 		double precision_mult = 1;
 
-		if(master.get_digital(DIGITAL_L2)) {
+		if(master.get_digital(DIGITAL_DOWN)) {
 			precision_mult = .5;
 		}
 
 
-		double x = master.get_analog(ANALOG_LEFT_X);
-		double y = master.get_analog(ANALOG_LEFT_Y);
+		double drive = master.get_analog(ANALOG_LEFT_Y);
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 
-		printf("Lift position: %f\n", lift.get_position());
-		drivetrain.print_position();
+		double drive_right = drive-turn;
+		double drive_left = drive+turn;
 
-		if(turn != 0) {
-			drivetrain.turn(turn);
+		drive_right = (pow(2,.067*abs(drive_right))-1)*abs(drive_right)/drive_right;
+		drive_left = (pow(2,.067*abs(drive_left))-1)*abs(drive_left)/drive_left;
+
+		if(drive_right < 1 && drive_right > -1) {
+			drive_right = 0;
 		}
-		else {
-			drivetrain.drive(y);
+		if(drive_left < 1 && drive_left > -1) {
+			drive_left = 0;
 		}
 
-		if(master.get_digital(DIGITAL_A)) {
+		drivetrain.drive_each({drive_right, drive_left, drive_left, drive_right});
+
+		//printf("Lift position: %f\n", lift.get_position());
+		//drivetrain.print_position();
+
+		if(master.get_digital(DIGITAL_R1)) {
 			printf("intake!\n");
 			intake_R.move(127*precision_mult);
 			intake_L.move(127*precision_mult);
-			intaking = true;
+			//intaking = true;
 		}
-		else if(master.get_digital(DIGITAL_B)) {
+		else if(master.get_digital(DIGITAL_R2)) {
 			printf("outtake!\n");
 			intake_R.move(-70*precision_mult);
 			intake_L.move(-70*precision_mult);
-			intaking = false;
+			//intaking = false;
 		}
-		else if(master.get_digital(DIGITAL_Y) || !intaking){
-			printf("STOP TAKING!\n");
-			intake_R.move(0);
-			intake_L.move(0);
-			intaking = false;
+		else {
+			//printf("STOP TAKING!\n");
+			intake_R.move(10);
+			intake_L.move(10);
+			//intaking = false;
 		}
 
-		if(master.get_digital(DIGITAL_UP)) {
-			lift.move(150*precision_mult);
+		if(master.get_digital(DIGITAL_L1)) {
+			lift.move(100*precision_mult);
 		}
-		else if(master.get_digital(DIGITAL_DOWN) && !lift_stop.get_value()) {
+		else if(master.get_digital(DIGITAL_L2) && !lift_stop.get_value()) {
 			lift.move(-150*precision_mult);
 		}
 		else {
 			lift.move(0);
+		}
+
+		if(master.get_digital(DIGITAL_LEFT)) {
+			drivetrain.turn_degrees(90, 80, 5000);
+		}
+		else if(master.get_digital(DIGITAL_RIGHT)) {
+			drivetrain.turn_degrees(-90, 80, 5000);
 		}
 
 		pros::delay(2);

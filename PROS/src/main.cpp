@@ -2,6 +2,9 @@
 #include "Drivetrain.cpp"
 #include <vector>
 
+double lift_mid = 900;
+double lift_low = 650;
+
 /**
  * A callback function for LLEMU's center button.
  *

@@ -86,27 +86,34 @@ void autonomous() {
 void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor lift_R(5, pros::E_MOTOR_GEARSET_36);
-	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36, 1);
-	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
+	pros::ADIDigitalIn lift_stop('A');
+	// lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	// lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-	std::vector<int> m_ports = {2, 9, 8, 3};
+	std::vector<int> m_ports = {14, 11, 13, 15};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
-
-	pros::Motor claw(21, pros::E_MOTOR_GEARSET_18, 1);
 
 	//master.print(1,1, "" + drivetrain.test());
 
+	bool intaking = false;
+
 	while (true) {
+		double precision_mult = 1;
+
+		if(master.get_digital(DIGITAL_L2)) {
+			precision_mult = .5;
+		}
 
 
-		double turn = master.get_analog(ANALOG_LEFT_X);
-		double y = master	.get_analog(ANALOG_LEFT_Y);
-		double lift = master.get_analog(ANALOG_RIGHT_Y);
+		double x = master.get_analog(ANALOG_LEFT_X);
+		double y = master.get_analog(ANALOG_LEFT_Y);
+		double turn = master.get_analog(ANALOG_RIGHT_X);
 
-		pros::lcd::print(1, "y: %d\n", y);
-		pros::lcd::print(2, "turn: %d\n", turn);
+		printf("Lift position: %f\n", lift.get_position());
+		drivetrain.print_position();
 
 		if(turn != 0) {
 			drivetrain.turn(turn);
@@ -115,20 +122,37 @@ void opcontrol() {
 			drivetrain.drive(y);
 		}
 
-		lift_R.move(lift);
-		lift_L.move(lift);
-
 		if(master.get_digital(DIGITAL_A)) {
-			claw.move(255);
+			printf("intake!\n");
+			intake_R.move(127*precision_mult);
+			intake_L.move(127*precision_mult);
+			intaking = true;
 		}
 		else if(master.get_digital(DIGITAL_B)) {
-			claw.move(-255);
+			printf("outtake!\n");
+			intake_R.move(-70*precision_mult);
+			intake_L.move(-70*precision_mult);
+			intaking = false;
+		}
+		else if(master.get_digital(DIGITAL_Y) || !intaking){
+			printf("STOP TAKING!\n");
+			intake_R.move(0);
+			intake_L.move(0);
+			intaking = false;
+		}
+
+		if(master.get_digital(DIGITAL_UP)) {
+			lift.move(150*precision_mult);
+		}
+		else if(master.get_digital(DIGITAL_DOWN) && !lift_stop.get_value()) {
+			lift.move(-150*precision_mult);
 		}
 		else {
-			claw.move(0);
+			lift.move(0);
 		}
 
 		pros::delay(2);
 		//pros::lcd::clear();
+
 	}
 }

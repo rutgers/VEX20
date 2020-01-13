@@ -2,6 +2,15 @@
 #include "Drivetrain.cpp"
 #include <vector>
 
+//preset lift heights in ticks
+double floor = 0;
+double one_cube = 0;
+double two_cube = 0;
+double three_cube = 0;
+double low_tower = 0;
+double mid_tower = 0;
+double high_tower = 0;
+
 /**
  * A callback function for LLEMU's center button.
  *
@@ -63,10 +72,25 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	std::vector<int> m_ports = {19, 12, 11, 20};
+	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36, 1);
+	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
-	drivetrain.drive_ticks(-3600);
+	intake_R.move(127);
+	intake_L.move(127);
+
+	drivetrain.drive_inches(24);
+	
+
+
+
+
 
 }
 
@@ -86,14 +110,14 @@ void autonomous() {
 void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
-	pros::ADIDigitalIn lift_stop('A');
-	// lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	// lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36, 1);
+	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-	std::vector<int> m_ports = {14, 11, 13, 15};
+	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
 	//master.print(1,1, "" + drivetrain.test());
@@ -112,7 +136,6 @@ void opcontrol() {
 		double y = master.get_analog(ANALOG_LEFT_Y);
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 
-		printf("Lift position: %f\n", lift.get_position());
 		drivetrain.print_position();
 
 		if(turn != 0) {
@@ -122,33 +145,36 @@ void opcontrol() {
 			drivetrain.drive(y);
 		}
 
-		if(master.get_digital(DIGITAL_A)) {
+		if(master.get_digital(DIGITAL_UP)) {
 			printf("intake!\n");
 			intake_R.move(127*precision_mult);
 			intake_L.move(127*precision_mult);
 			intaking = true;
 		}
-		else if(master.get_digital(DIGITAL_B)) {
+		else if(master.get_digital(DIGITAL_DOWN)) {
 			printf("outtake!\n");
 			intake_R.move(-70*precision_mult);
 			intake_L.move(-70*precision_mult);
 			intaking = false;
 		}
-		else if(master.get_digital(DIGITAL_Y) || !intaking){
+		else if(master.get_digital(DIGITAL_LEFT) || !intaking){
 			printf("STOP TAKING!\n");
 			intake_R.move(0);
 			intake_L.move(0);
 			intaking = false;
 		}
 
-		if(master.get_digital(DIGITAL_UP)) {
-			lift.move(150*precision_mult);
+		if(master.get_digital(DIGITAL_R1)) {
+			lift_R.move(150*precision_mult);
+			lift_L.move(150*precision_mult);
 		}
-		else if(master.get_digital(DIGITAL_DOWN) && !lift_stop.get_value()) {
-			lift.move(-150*precision_mult);
+		else if(master.get_digital(DIGITAL_R2)) {
+			lift_R.move(-150*precision_mult);
+			lift_L.move(-150*precision_mult);
 		}
 		else {
-			lift.move(0);
+			lift_R.move(0);
+			lift_L.move(0);
 		}
 
 		pros::delay(2);

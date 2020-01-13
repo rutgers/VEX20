@@ -29,10 +29,10 @@ private:
 public:
   Drivetrain(std::vector<int> m_ports, pros::motor_gearset_e gearset)
   {
-    kp = .2;
+    kp = .0045;
     ki = 0;
-    kd = 10;
-    e_t = 200;
+    kd = -.05;
+    e_t = 100;
     //green gearbox
     tpr = 900;
 

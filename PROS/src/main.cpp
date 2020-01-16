@@ -8,7 +8,7 @@ pros::Imu *imu;
 
 //SETTINGS FOR AUTON MODES
 bool red = false;
-bool skills = false;
+bool skills = true;
 
 
 
@@ -127,9 +127,9 @@ void autonomous() {
 
 	//SKILLS
 	if(skills) {
-		drivetrain.drive_inches(120, 50, 15000);
 		intake_R.move(255);
 		intake_L.move(255);
+		drivetrain.drive_inches(100, 50, 15000);
 
 		drivetrain.drive(60);
 		pros::delay(1000);
@@ -138,6 +138,12 @@ void autonomous() {
 		drivetrain.turn_degrees(-87*reverse, imu);
 
 		drivetrain.drive_inches(29, 40, 5000);
+
+		intake_R.move(-35);
+		intake_L.move(-35);120120
+		pros::delay(500);
+		intake_R.move(0);
+		intake_L.move(0);
 
 		move_lift(lift, lift_place);
 		pros::delay(1000);

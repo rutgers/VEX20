@@ -2,18 +2,25 @@
 #include "Drivetrain.cpp"
 #include <vector>
 
-double lift_place = 9589;
-uint8_t imu_port = 0;
+double lift_place = 10069;
+uint8_t imu_port = 16;
+pros::Imu *imu;
+
+//SETTINGS FOR AUTON MODES
+bool red = false;
+bool skills = false;
+
+
 
 void move_lift(pros::Motor lift, double ticks) {
 
-	double kp = .2;
+	double kp = .02;
 	double ki = 0;
 	double kd = 10;
-	double e_t = 100;
+	double e_t = 50;
 
 	PID ctrl(kp, ki, kd, e_t);
-	ctrl.update_target(ticks+lift.get_position());
+	ctrl.update_target(ticks);
 	ctrl.update(lift.get_position(),0);
 
 	double dt = 2;
@@ -22,7 +29,11 @@ void move_lift(pros::Motor lift, double ticks) {
 
 			double output = ctrl.update(lift.get_position(), dt);
 			printf("lift output: %f\n", output);
-			lift.move(output*127);
+
+			if(abs(output) > 1) {
+				output = output/abs(output);
+			}
+			lift.move(output*100);
 
 
 		printf("loop_over!\n");
@@ -61,7 +72,9 @@ void initialize() {
 
 	pros::lcd::register_btn1_cb(on_center_button);
 
-	pros::imu::imu_reset(imu_port);
+	imu = new pros::Imu(imu_port);
+	imu->reset();
+	pros::delay(2000);
 
 }
 
@@ -75,7 +88,7 @@ void disabled() {}
 /**
  * Runs after initialize(), and before autonomous when connected to the Field
  * Management System or the VEX Competition Switch. This is intended for
- * competition-specific initialization routines, such as an autonomous selector
+ * competitionpros::reset(imu_port);-specific initialization routines, such as an autonomous selector
  * on the LCD.
  *
  * This task will exit when the robot is enabled and autonomous or opcontrol
@@ -88,7 +101,7 @@ void competition_initialize() {}
  * with the default priority and stack size whenever the robot is enabled via
  * the Field Management System or the VEX Competition Switch in the autonomous
  * mode. Alternatively, this function may be called in initialize or opcontrol
- * for non-competition testing purposes.
+ * for non-competitionhttps://www.google.com/search?client=ubuntu&channel=fs&q=call+function+from+pointer&ie=utf-8&oe=utf-8 testing purposes.
  *
  * If the robot is disabled or communications is lost, the autonomous task
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
@@ -107,53 +120,95 @@ void autonomous() {
 	std::vector<int> m_ports = {14, 11, 13, 15};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
-	intake_R.move(255);
-	intake_L.move(255);
-	lift.move(0);
+	int reverse = 1;
+	if(!red) {
+		reverse = -1;
+	}
 
-	// Grabbing P1
-	drivetrain.drive_inches(34, 60, 2000);
+	//SKILLS
+	if(skills) {
+		drivetrain.drive_inches(120, 50, 15000);
+		intake_R.move(255);
+		intake_L.move(255);
 
-	// Grabbing Green Cube
-	drivetrain.turn_degrees(30,50, 4000);
-	drivetrain.drive_inches(8*sqrt(2), 80, 3000);
+		drivetrain.drive(60);
+		pros::delay(1000);
+		drivetrain.drive(60);
 
-	// Going back to the wall
-	drivetrain.turn_degrees(-30, 50, 4000);
-	intake_R.move(0);
-	intake_L.move(0);
-	drivetrain.drive(-60);
-	pros::delay(3500);
-	drivetrain.drive_inches(10,80, 5000);
+		drivetrain.turn_degrees(-87*reverse, imu);
 
-	// Angling for P2
-	drivetrain.turn_degrees(90, 50, 7000);
-	drivetrain.drive_inches(18, 60, 5000);
-	drivetrain.turn_degrees(-90, 50, 7000);
+		drivetrain.drive_inches(29, 40, 5000);
 
-	intake_R.move(255);
-	intake_L.move(255);
+		move_lift(lift, lift_place);
+		pros::delay(1000);
 
-	// Grabbing P2
-	drivetrain.drive_inches(42, 60, 5000);
+		// Reverse and 180
+		drivetrain.drive_inches(-24, 40, 2000);
+		drivetrain.turn_degrees(180, imu);
+	}
+	//NORMAL AUTON
+	else {
 
-	intake_R.move(0);
-	intake_L.move(0);
+		intake_R.move(255);
+		intake_L.move(255);
+		lift.move(0);
 
-	//Angling for placing
-	drivetrain.drive(-60);
-	pros::delay(3500);
-	drivetrain.drive_inches(6);
-	drivetrain.turn_degrees(-110, 70, 5000);
-	drivetrain.drive_inches(36, 50, 5000);
+		// Grabbing P1
+		drivetrain.drive_inches(38, 50, 4000);
 
-	// Placing
-	move_lift(lift, lift_place);
-	pros::delay(1000);
+		drivetrain.drive(-60);
+		pros::delay(2500);
+		intake_R.move(0);
+		intake_L.move(0);
+		drivetrain.drive_inches(10,80);
 
-	// Reverse and 180
-	drivetrain.drive_inches(-24, 40, 2000);
-	drivetrain.turn_degrees(180, 80);
+		// Angling for P2
+		drivetrain.turn_degrees(90*reverse, imu, 3000);
+		drivetrain.drive_inches(21, 60, 5000);
+		drivetrain.turn_degrees(-90*reverse, imu, 3000);
+
+		drivetrain.drive(-60);
+		pros::delay(1000);
+
+		intake_R.move(255);
+		intake_L.move(255);
+
+		// Grabbing P2
+		drivetrain.drive_inches(52, 50, 5000);
+
+		//angling for p3
+		drivetrain.turn_degrees(90*reverse, imu, 3000);
+
+		//grabbing p3
+		drivetrain.drive_inches(24, 50, 5000);
+
+		//going back to the wall
+		drivetrain.drive_inches(-24, 60, 5000);
+		drivetrain.turn_degrees(-90*reverse, imu, 3000);
+		drivetrain.drive(-60);
+		pros::delay(4500);
+
+
+		//Angling for placing
+
+		drivetrain.drive_inches(6);
+		drivetrain.turn_degrees(-96*reverse, imu, 3000);
+		drivetrain.drive_inches(29, 40, 5000);
+
+		intake_R.move(-35);
+		intake_L.move(-35);
+		pros::delay(500);
+		intake_R.move(0);
+		intake_L.move(0);
+
+		// Placing
+		move_lift(lift, lift_place);
+		pros::delay(1000);
+
+		// Reverse and 180
+		drivetrain.drive_inches(-24, 40, 2000);
+		drivetrain.turn_degrees(180, imu);
+	}
 
 }
 
@@ -194,15 +249,15 @@ void opcontrol() {
 			precision_mult = .5;
 		}
 
-		printf("rotation: %f\n", pros::imu::imu_get_rotation(imu_port));
+		printf("rotation: %f\n", imu->get_rotation());
 
 
 		double x = master.get_analog(ANALOG_LEFT_X);
 		double y = master.get_analog(ANALOG_LEFT_Y);
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 
-		printf("Lift position: %f\n", lift.get_position());
-		drivetrain.print_position();
+		//printf("Lift position: %f\n", lift.get_position());
+		//drivetrain.print_position();
 
 		if(turn != 0) {
 			drivetrain.turn(turn);
@@ -229,6 +284,16 @@ void opcontrol() {
 			intake_L.move(0);
 			intaking = false;
 		}
+
+		if(master.get_digital(DIGITAL_R1)) {
+			intake_R.move(-35);
+			intake_L.move(-35);
+			pros::delay(500);
+			intake_R.move(0);
+			intake_L.move(0);
+			move_lift(lift, lift_place);
+		}
+
 
 		if(master.get_digital(DIGITAL_UP)) {
 			lift.move(150*precision_mult);

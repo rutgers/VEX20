@@ -100,7 +100,7 @@ public:
       pid_controls[i].update_target(ticks*dirs[i]+motors[i].get_position());
     }
 
-    static double dt = 2;
+    double dt = 2;
     double passed_time = 2;
     while(!check_arrived())
     {
@@ -154,9 +154,53 @@ public:
 
   }
 
-  void turn_degrees(double degrees, double max_power = 40, double timeout = 5000)
+  void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000)
   {
-    std::vector<int> dirs {1, -1, -1, 1};
-    drive_ticks(degrees/360*tpt, dirs, max_power, timeout);
+    double kp = .2;
+    double ki = .000001;
+    double kd = -.005;
+    double e_t = 1;
+    double max_power = 50;
+    degrees = -degrees;
+
+    double initial_rot
+    = imu->get_rotation();
+    PID turn_ctrl(kp, ki, kd, e_t);
+    turn_ctrl.update_target(degrees+initial_rot);
+
+    std::vector<int> dirs = {-1, 1, 1, -1};
+
+    double dt = 2;
+    double passed_time = 0;
+    double goal_time = 0;
+    while(goal_time < 100)
+    {
+
+      double output = turn_ctrl.update(imu->get_rotation(), dt);
+      double dir = abs(output)/output;
+      if(abs(output) > 1) {
+        output = dir;
+      }
+      for(int i = 0; i < motors.size(); i++) {
+        motors[i].move(output*max_power*dirs[i]);
+      }
+      printf("output: %f\n", output);
+      printf("loop_over!\n");
+      print_position();
+      if(passed_time >= timeout) {
+        break;
+        printf("breaking!\n");
+      }
+      pros::delay(dt);
+      passed_time = passed_time+dt;
+      if(abs(imu->get_rotation() - initial_rot - degrees) < e_t) {
+        goal_time += dt;
+      }
+      else {
+        goal_time = 0;
+      }
+    }
+    printf("done moving!\n");
+    drive(0);
   }
 };

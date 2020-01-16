@@ -3,6 +3,7 @@
 #include <vector>
 
 double lift_place = 9589;
+uint8_t imu_port = 0;
 
 void move_lift(pros::Motor lift, double ticks) {
 
@@ -59,6 +60,8 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+
+	pros::imu::imu_reset(imu_port);
 
 }
 
@@ -190,6 +193,8 @@ void opcontrol() {
 		if(master.get_digital(DIGITAL_L2)) {
 			precision_mult = .5;
 		}
+
+		printf("rotation: %f\n", pros::imu::imu_get_rotation(imu_port));
 
 
 		double x = master.get_analog(ANALOG_LEFT_X);

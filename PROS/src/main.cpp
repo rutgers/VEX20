@@ -27,6 +27,32 @@ void on_center_button() {
 	}
 }
 
+void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
+
+	kp = .0045;
+	ki = 0;
+	kd = -.05;
+	e_t = 50;
+	PID r_control(kp, ki, kd, e_t);
+	PID l_control(kp, ki, kd, e_t);
+
+	r_control.update_target(pos);
+	l_control.update_target(pos);
+
+	double dt = 2;
+	while(!r_control.check_arrived() && !l_control.check_arrived()) {
+		double r_output = r_control.update(lift_r.get_position(), dt);
+		double l_output = l_control.update(lift_l.get_position(), dt);
+
+		printf("output: %f\npassed_time: %f\n", output, passed_time);
+
+		lift_r.move(r_output);
+		lift_l.move(l_output);
+	}`
+	lift_r.move(0);
+	lift_l.move(0);
+}
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *
@@ -82,11 +108,52 @@ void autonomous() {
 	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
+	//grabbing first cube
 	intake_R.move(127);
 	intake_L.move(127);
-
 	drivetrain.drive_inches(24);
-	
+
+	//grab first cube on stack
+	lift_to_position(two_cube, lift_R, lift_L);
+	drivetrain.drive_inches(6);
+	drivetrain.drive_inches(-6);
+
+	//grab second cube on stack
+	lift_to_position(one_cube, lift_R, lift_L);
+	drivetrain.drive_inches(6);
+
+	intake_R.move(0);
+	intake_L.move(0);
+
+	//positioning to place fist cube
+	drivetrain.turn_degrees(90);
+	drivetrain.drive_inches(12);
+	drivetrain.turn_degrees(-90);
+	drivetrain.drive_inches(24);
+	lift_to_position(low_tower, lift_R, lift_L);
+
+	//placing first cube
+	intake_R.move(-70);
+	intake_L.move(-70);
+	pros::delay(600);
+	intake_R.move(0);
+	intake_L.move(0);
+
+	//positioning to place second cube
+	drivetrain.drive_inches(-42);
+	drivetrain.turn_degrees(-90);
+	drivetrain.drive_inches(36);
+	lift_to_position(mid_tower, lift_R, lift_L);
+
+	//placing second cube
+	drivetrain.drive_inches(6);
+	intake_R.move(-70);
+	intake_L.move(-70);
+	pros::delay(600);
+	intake_R.move(0);
+	intake_L.move(0);
+
+
 
 
 

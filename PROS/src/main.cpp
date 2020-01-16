@@ -2,14 +2,17 @@
 #include "Drivetrain.cpp"
 #include <vector>
 
+uint8_t imu_port = 19;
+pros::Imu *imu;
+
 //preset lift heights in ticks
-double floor = 0;
-double one_cube = 0;
-double two_cube = 0;
-double three_cube = 0;
-double low_tower = 0;
-double mid_tower = 0;
-double high_tower = 0;
+double bottom = 0;
+double one_cube = 1170;
+double two_cube = 2070;
+double three_cube = 2435;
+double low_tower = 2518;
+double mid_tower = 3757;
+double high_tower = 3757;
 
 /**
  * A callback function for LLEMU's center button.
@@ -29,10 +32,10 @@ void on_center_button() {
 
 void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 
-	kp = .0045;
-	ki = 0;
-	kd = -.05;
-	e_t = 50;
+	double kp = .0045;
+	double ki = 0;
+	double kd = -.05;
+	double e_t = 50;
 	PID r_control(kp, ki, kd, e_t);
 	PID l_control(kp, ki, kd, e_t);
 
@@ -40,15 +43,17 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 	l_control.update_target(pos);
 
 	double dt = 2;
+	double passed_time = 0;
 	while(!r_control.check_arrived() && !l_control.check_arrived()) {
 		double r_output = r_control.update(lift_r.get_position(), dt);
 		double l_output = l_control.update(lift_l.get_position(), dt);
 
-		printf("output: %f\npassed_time: %f\n", output, passed_time);
+		printf("outpu (r, l)t: (%f, %f)\npassed_time: %f\n", r_output, l_output, passed_time);
 
 		lift_r.move(r_output);
 		lift_l.move(l_output);
-	}`
+		passed_time = passed_time + dt;
+	}
 	lift_r.move(0);
 	lift_l.move(0);
 }
@@ -65,6 +70,9 @@ void initialize() {
 	pros::lcd::set_text(1, "Hello PROS User!");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+	imu = new pros::Imu(imu_port);
+
+	imu -> reset();
 
 }
 
@@ -100,8 +108,8 @@ void competition_initialize() {}
 void autonomous() {
 	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36);
-	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36, 1);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -112,6 +120,7 @@ void autonomous() {
 	intake_R.move(127);
 	intake_L.move(127);
 	drivetrain.drive_inches(24);
+
 
 	//grab first cube on stack
 	lift_to_position(two_cube, lift_R, lift_L);
@@ -179,8 +188,8 @@ void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36);
-	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36, 1);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -203,7 +212,8 @@ void opcontrol() {
 		double y = master.get_analog(ANALOG_LEFT_Y);
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 
-		drivetrain.print_position();
+		//drivetrain.print_position();
+		printf("Lift positions (r, l): (%f, %f)\n", lift_R.get_position(), lift_L.get_position());
 
 		if(turn != 0) {
 			drivetrain.turn(turn);
@@ -220,8 +230,8 @@ void opcontrol() {
 		}
 		else if(master.get_digital(DIGITAL_DOWN)) {
 			printf("outtake!\n");
-			intake_R.move(-70*precision_mult);
-			intake_L.move(-70*precision_mult);
+			intake_R.move(-127*precision_mult);
+			intake_L.move(-127*precision_mult);
 			intaking = false;
 		}
 		else if(master.get_digital(DIGITAL_LEFT) || !intaking){
@@ -242,6 +252,8 @@ void opcontrol() {
 		else {
 			lift_R.move(0);
 			lift_L.move(0);
+			lift_R.move_velocity(0);
+			lift_L.move_velocity(0);
 		}
 
 		pros::delay(2);

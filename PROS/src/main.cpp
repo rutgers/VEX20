@@ -5,6 +5,9 @@
 uint8_t imu_port = 19;
 pros::Imu *imu;
 
+bool skills = false;
+bool red = false;
+
 //preset lift heights in ticks
 double bottom = 0;
 double one_cube = 1170;
@@ -116,51 +119,62 @@ void autonomous() {
 	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
-	//grabbing first cube
-	intake_R.move(127);
-	intake_L.move(127);
-	drivetrain.drive_inches(24);
+	double reverse = 1;
+
+	if(!red) {
+		reverse = -1;
+	}
+
+	if(skills) {
+
+	}
+	else {
+		//grabbing first cube
+		intake_R.move(127);
+		intake_L.move(127);
+		drivetrain.drive_inches(24);
 
 
-	//grab first cube on stack
-	lift_to_position(two_cube, lift_R, lift_L);
-	drivetrain.drive_inches(6);
-	drivetrain.drive_inches(-6);
+		//grab first cube on stack
+		lift_to_position(two_cube, lift_R, lift_L);
+		drivetrain.drive_inches(6);
+		drivetrain.drive_inches(-6);
 
-	//grab second cube on stack
-	lift_to_position(one_cube, lift_R, lift_L);
-	drivetrain.drive_inches(6);
+		//grab second cube on stack
+		lift_to_position(one_cube, lift_R, lift_L);
+		drivetrain.drive_inches(6);
 
-	intake_R.move(0);
-	intake_L.move(0);
+		intake_R.move(0);
+		intake_L.move(0);
 
-	//positioning to place fist cube
-	drivetrain.turn_degrees(90);
-	drivetrain.drive_inches(12);
-	drivetrain.turn_degrees(-90);
-	drivetrain.drive_inches(24);
-	lift_to_position(low_tower, lift_R, lift_L);
+		drivetrain.turn_degrees(-20*reverse, imu);
+		lift_to_position(low_tower, lift_R, lift_L);
+		drivetrain.drive_inches(25);
 
-	//placing first cube
-	intake_R.move(-70);
-	intake_L.move(-70);
-	pros::delay(600);
-	intake_R.move(0);
-	intake_L.move(0);
+		intake_R.move(-127);
+		intake_L.move(-127);
+		pros::delay(1000);
+		intake_R.move(0);
+		intake_L.move(0);
 
-	//positioning to place second cube
-	drivetrain.drive_inches(-42);
-	drivetrain.turn_degrees(-90);
-	drivetrain.drive_inches(36);
-	lift_to_position(mid_tower, lift_R, lift_L);
+		drivetrain.drive_inches(-25);
+		drivetrain.turn_degrees(20*reverse, imu);
 
-	//placing second cube
-	drivetrain.drive_inches(6);
-	intake_R.move(-70);
-	intake_L.move(-70);
-	pros::delay(600);
-	intake_R.move(0);
-	intake_L.move(0);
+		drivetrain.drive_inches(-18);
+		drivetrain.turn_degrees(-90*reverse, imu);
+
+		lift_to_position(mid_tower, lift_R, lift_L);
+		drivetrain.drive_inches(24);
+		intake_R.move(-127);
+		intake_L.move(-127);
+		pros::delay(1000);
+		intake_R.move(0);
+		intake_L.move(0);
+
+		drivetrain.drive_inches(-24);
+
+	}
+
 
 
 

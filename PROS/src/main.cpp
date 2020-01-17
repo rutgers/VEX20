@@ -1,6 +1,7 @@
 #include "main.h"
 #include "Drivetrain.cpp"
 #include <vector>
+#include <thread>
 
 double lift_place = 10069;
 uint8_t imu_port = 16;
@@ -9,31 +10,36 @@ pros::Imu *imu;
 //SETTINGS FOR AUTON MODES
 bool red = false;
 bool skills = true;
+bool lowering = false;
 
 
 
 void move_lift(pros::Motor lift, double ticks) {
 
+	// Coefficients for the PID controller
 	double kp = .02;
 	double ki = 0;
 	double kd = 10;
 	double e_t = 50;
 
+	// Creating a new instance of a PID controller and update it with new targets
 	PID ctrl(kp, ki, kd, e_t);
 	ctrl.update_target(ticks);
 	ctrl.update(lift.get_position(),0);
 
 	double dt = 2;
+	
+
 	while(!ctrl.check_arrived())
 	{
 
-			double output = ctrl.update(lift.get_position(), dt);
-			printf("lift output: %f\n", output);
+		double output = ctrl.update(lift.get_position(), dt);
+		printf("lift output: %f\n", output);
 
-			if(abs(output) > 1) {
-				output = output/abs(output);
-			}
-			lift.move(output*100);
+		if(abs(output) > 1) {
+			output = output/abs(output);
+		}
+		lift.move(output*100);
 
 
 		printf("loop_over!\n");
@@ -108,18 +114,26 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+
+	//ROBOT SETUP
+
+	//The controller for this bot
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
+	//Intake motors
 	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
+	//Lift Motor and Setup
 	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
 	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	//Stop Button to prevent lift from lowering too far
 	pros::ADIDigitalIn lift_stop('A');
-	// lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	// lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
+	//Setup for the drivetrain
 	std::vector<int> m_ports = {14, 11, 13, 15};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
+
+	//Reverses turning on the autonomous modes if a preset value (red) is set to true.
+	//Allows for both blue and red opmodes to be matching and edited at the same time
 	int reverse = 1;
 	if(!red) {
 		reverse = -1;
@@ -140,7 +154,7 @@ void autonomous() {
 		drivetrain.drive_inches(29, 40, 5000);
 
 		intake_R.move(-35);
-		intake_L.move(-35);120120
+		intake_L.move(-35);
 		pros::delay(500);
 		intake_R.move(0);
 		intake_L.move(0);
@@ -155,59 +169,58 @@ void autonomous() {
 	//NORMAL AUTON
 	else {
 
+		//AUTONOMOUS
+
+		// Grabbing the first set of cubes
 		intake_R.move(255);
 		intake_L.move(255);
 		lift.move(0);
-
-		// Grabbing P1
 		drivetrain.drive_inches(38, 50, 4000);
 
+		// Returning to the wall
 		drivetrain.drive(-60);
 		pros::delay(2500);
 		intake_R.move(0);
 		intake_L.move(0);
 		drivetrain.drive_inches(10,80);
 
-		// Angling for P2
+		// Angling for the second set of cubes
 		drivetrain.turn_degrees(90*reverse, imu, 3000);
 		drivetrain.drive_inches(21, 60, 5000);
 		drivetrain.turn_degrees(-90*reverse, imu, 3000);
 
+		// Returning to the wall
 		drivetrain.drive(-60);
 		pros::delay(1000);
 
+		// Grabbing the second set of cubes
 		intake_R.move(255);
 		intake_L.move(255);
-
-		// Grabbing P2
 		drivetrain.drive_inches(52, 50, 5000);
 
-		//angling for p3
+		// Angling for the third set of cubes
 		drivetrain.turn_degrees(90*reverse, imu, 3000);
 
-		//grabbing p3
+		// Grabbing the third set of cubes
 		drivetrain.drive_inches(24, 50, 5000);
 
-		//going back to the wall
+		// Going back to the wall
 		drivetrain.drive_inches(-24, 60, 5000);
 		drivetrain.turn_degrees(-90*reverse, imu, 3000);
 		drivetrain.drive(-60);
 		pros::delay(4500);
 
-
-		//Angling for placing
-
+		// Angling for stacking
 		drivetrain.drive_inches(6);
 		drivetrain.turn_degrees(-96*reverse, imu, 3000);
 		drivetrain.drive_inches(29, 40, 5000);
 
+		// Placing the Stack
 		intake_R.move(-35);
 		intake_L.move(-35);
 		pros::delay(500);
 		intake_R.move(0);
 		intake_L.move(0);
-
-		// Placing
 		move_lift(lift, lift_place);
 		pros::delay(1000);
 
@@ -237,61 +250,53 @@ void opcontrol() {
 	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
+	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	pros::ADIDigitalIn lift_stop('A');
-	// lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	// lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 	std::vector<int> m_ports = {14, 11, 13, 15};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
-	//master.print(1,1, "" + drivetrain.test());
 
-	bool intaking = false;
-
+// Loop for op control
 	while (true) {
-		double precision_mult = 1;
 
-		if(master.get_digital(DIGITAL_L2)) {
+		//Activating position modes, which divides the power of all movements by 2
+		double precision_mult = 1;
+		if(master.get_digital(DIGITAL_DOWN)) {
 			precision_mult = .5;
 		}
 
-		printf("rotation: %f\n", imu->get_rotation());
 
-
-		double x = master.get_analog(ANALOG_LEFT_X);
+		//Drivetrain control.
+		//Both turning and normal driving inputs are placed on an exponential curve (2^(.06*input)-1)
+		//This allows for faster and more precise driving.
 		double y = master.get_analog(ANALOG_LEFT_Y);
+		y = pow(2,.06*abs(y))*abs(y)/y-1;
 		double turn = master.get_analog(ANALOG_RIGHT_X);
-
-		//printf("Lift position: %f\n", lift.get_position());
-		//drivetrain.print_position();
-
-		if(turn != 0) {
-			drivetrain.turn(turn);
+		double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
+		if(abs(turn) > 5 ) {
+			drivetrain.turn(curved_turn);
 		}
 		else {
 			drivetrain.drive(y);
 		}
 
-		if(master.get_digital(DIGITAL_A)) {
-			printf("intake!\n");
+		//Control for the intake motors.
+		if(master.get_digital(DIGITAL_R1)) {
 			intake_R.move(127*precision_mult);
 			intake_L.move(127*precision_mult);
-			intaking = true;
+
 		}
-		else if(master.get_digital(DIGITAL_B)) {
-			printf("outtake!\n");
+		else if(master.get_digital(DIGITAL_R2)) {
 			intake_R.move(-70*precision_mult);
 			intake_L.move(-70*precision_mult);
-			intaking = false;
 		}
-		else if(master.get_digital(DIGITAL_Y) || !intaking){
-			printf("STOP TAKING!\n");
-			intake_R.move(0);
-			intake_L.move(0);
-			intaking = false;
+		else {
+			intake_R.move(10);
+			intake_L.move(10);
 		}
 
-		if(master.get_digital(DIGITAL_R1)) {
+		if(master.get_digital(DIGITAL_A) && master.get_digital(DIGITAL_LEFT)) {
 			intake_R.move(-35);
 			intake_L.move(-35);
 			pros::delay(500);
@@ -300,16 +305,29 @@ void opcontrol() {
 			move_lift(lift, lift_place);
 		}
 
-
-		if(master.get_digital(DIGITAL_UP)) {
+		//Controls for the lift
+		//Checks a button to prevent overcompression of the lift
+		if(master.get_digital(DIGITAL_L1)) {
 			lift.move(150*precision_mult);
+			lowering = false;
 		}
-		else if(master.get_digital(DIGITAL_DOWN) && !lift_stop.get_value()) {
+		else if(master.get_digital(DIGITAL_L2) && !lift_stop.get_value()) {
 			lift.move(-150*precision_mult);
+			lowering = false;
 		}
-		else {
+		else if(lift_stop.get_value()) {
+			lowering = false;
 			lift.move(0);
 		}
+		//Allows for the driver to bring the lift to the bottom without need to be holding a button
+		else if((master.get_digital(DIGITAL_B) || lowering) && !lift_stop.get_value()) {
+			lowering = true;
+			lift.move(-150);
+		}
+		else if(!lowering) {
+			lift.move(0);
+		}
+
 
 		pros::delay(2);
 		//pros::lcd::clear();

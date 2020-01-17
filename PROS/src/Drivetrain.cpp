@@ -52,9 +52,9 @@ public:
   	// pros::Motor *rearR = new pros::Motor(m_ports[4], gearset);
     // pros::Motor *midR = new pros::Motor(m_ports[5], gearset);
 
-    pros::Motor frontR (m_ports[0], gearset, 1);
+    pros::Motor frontR (m_ports[0], gearset);
     motors.push_back(frontR);
-    pros::Motor frontL (m_ports[1], gearset);
+    pros::Motor frontL (m_ports[1], gearset, 1);
     motors.push_back(frontL);
     pros::Motor rearL (m_ports[2], gearset);
     motors.push_back(rearL);
@@ -163,8 +163,7 @@ public:
     double max_power = 50;
     degrees = -degrees;
 
-    double initial_rot
-    = imu->get_rotation();
+    double initial_rot = imu->get_rotation();
     PID turn_ctrl(kp, ki, kd, e_t);
     turn_ctrl.update_target(degrees+initial_rot);
 
@@ -173,7 +172,7 @@ public:
     double dt = 2;
     double passed_time = 0;
     double goal_time = 0;
-    while(goal_time < 100)
+    while(goal_time < 200)
     {
 
       double output = turn_ctrl.update(imu->get_rotation(), dt);
@@ -202,5 +201,9 @@ public:
     }
     printf("done moving!\n");
     drive(0);
+  }
+
+  void turn_to_degrees(double degrees, pros::Imu *imu, double timeout = 5000) {
+    turn_degrees(-(imu->get_rotation())+degrees, imu, timeout);
   }
 };

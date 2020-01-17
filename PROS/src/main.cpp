@@ -6,15 +6,15 @@ uint8_t imu_port = 19;
 pros::Imu *imu;
 
 bool skills = false;
-bool red = false;
+bool red = true;
 
 //preset lift heights in ticks
 double bottom = 0;
 double one_cube = 1170;
-double two_cube = 2070;
+double two_cube = 1970;
 double three_cube = 2435;
-double low_tower = 2518;
-double mid_tower = 3757;
+double low_tower = 3018;
+double mid_tower = 3857;
 double high_tower = 3757;
 
 /**
@@ -35,7 +35,7 @@ void on_center_button() {
 
 void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 
-	double kp = .0045;
+	double kp = .09;
 	double ki = 0;
 	double kd = -.05;
 	double e_t = 50;
@@ -51,10 +51,17 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 		double r_output = r_control.update(lift_r.get_position(), dt);
 		double l_output = l_control.update(lift_l.get_position(), dt);
 
-		printf("outpu (r, l)t: (%f, %f)\npassed_time: %f\n", r_output, l_output, passed_time);
+		printf("output (r, l)t: (%f, %f)\npassed_time: %f\n", r_output, l_output, passed_time);
 
-		lift_r.move(r_output);
-		lift_l.move(l_output);
+		if(abs(r_output) > 1) {
+			r_output = r_output/abs(r_output);
+		}
+		if(abs(l_output) > 1) {
+			l_output = l_output/abs(l_output);
+		}
+
+		lift_r.move(r_output*127);
+		lift_l.move(l_output*127);
 		passed_time = passed_time + dt;
 	}
 	lift_r.move(0);
@@ -111,8 +118,8 @@ void competition_initialize() {}
 void autonomous() {
 	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36);
-	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -132,24 +139,28 @@ void autonomous() {
 		//grabbing first cube
 		intake_R.move(127);
 		intake_L.move(127);
-		drivetrain.drive_inches(24);
+		drivetrain.drive_inches(22, 50);
 
 
 		//grab first cube on stack
 		lift_to_position(two_cube, lift_R, lift_L);
-		drivetrain.drive_inches(6);
-		drivetrain.drive_inches(-6);
+		drivetrain.drive_inches(12, 25);
+		lift_to_position(two_cube, lift_R, lift_L);
+		pros::delay(500);
+		lift_to_position(two_cube, lift_R, lift_L);
+		drivetrain.drive_inches(-12, 25);
 
 		//grab second cube on stack
 		lift_to_position(one_cube, lift_R, lift_L);
-		drivetrain.drive_inches(6);
+		drivetrain.drive_inches(16, 20);
+		pros::delay(200);
 
+		drivetrain.turn_degrees(21*reverse, imu);
+		lift_to_position(low_tower, lift_R, lift_L);
+		drivetrain.drive_inches(20, 70, 5000);
 		intake_R.move(0);
 		intake_L.move(0);
-
-		drivetrain.turn_degrees(-20*reverse, imu);
 		lift_to_position(low_tower, lift_R, lift_L);
-		drivetrain.drive_inches(25);
 
 		intake_R.move(-127);
 		intake_L.move(-127);
@@ -157,21 +168,28 @@ void autonomous() {
 		intake_R.move(0);
 		intake_L.move(0);
 
-		drivetrain.drive_inches(-25);
-		drivetrain.turn_degrees(20*reverse, imu);
+		drivetrain.drive_inches(-20, 50);
+		intake_R.move(127);
+		intake_L.move(127);
+		drivetrain.turn_degrees(-21*reverse, imu);
 
-		drivetrain.drive_inches(-18);
+		drivetrain.drive_inches(-14, 50);
 		drivetrain.turn_degrees(-90*reverse, imu);
 
 		lift_to_position(mid_tower, lift_R, lift_L);
-		drivetrain.drive_inches(24);
+		drivetrain.drive_inches(18, 70);
+		intake_R.move(0);
+		intake_L.move(0);
+		lift_to_position(mid_tower, lift_R, lift_L);
+		drivetrain.drive_inches(6, 70);
+
 		intake_R.move(-127);
 		intake_L.move(-127);
-		pros::delay(1000);
+		pros::delay(3000);
 		intake_R.move(0);
 		intake_L.move(0);
 
-		drivetrain.drive_inches(-24);
+		drivetrain.drive_inches(-24, 50);
 
 	}
 
@@ -202,8 +220,8 @@ void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36);
-	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
@@ -269,6 +287,15 @@ void opcontrol() {
 			lift_R.move_velocity(0);
 			lift_L.move_velocity(0);
 		}
+
+		if(master.get_digital(DIGITAL_A)) {
+			lift_to_position(low_tower, lift_R, lift_L);
+		}
+		else if(master.get_digital(DIGITAL_B)) {
+			lift_to_position(mid_tower, lift_R, lift_L);
+		}
+
+
 
 		pros::delay(2);
 		//pros::lcd::clear();

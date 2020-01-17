@@ -116,18 +116,20 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+	//Intake Motors
 	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
+	//Lift Motors
 	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36, 1);
 	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
+	//Drivetrain Setup
 	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
 	double reverse = 1;
-
 	if(!red) {
 		reverse = -1;
 	}
@@ -136,13 +138,10 @@ void autonomous() {
 
 	}
 	else {
-		//grabbing first cube
+		// Grab first cube on stack
 		intake_R.move(127);
 		intake_L.move(127);
 		drivetrain.drive_inches(22, 50);
-
-
-		//grab first cube on stack
 		lift_to_position(two_cube, lift_R, lift_L);
 		drivetrain.drive_inches(12, 25);
 		lift_to_position(two_cube, lift_R, lift_L);
@@ -150,11 +149,12 @@ void autonomous() {
 		lift_to_position(two_cube, lift_R, lift_L);
 		drivetrain.drive_inches(-12, 25);
 
-		//grab second cube on stack
+		// Grab second cube on stack
 		lift_to_position(one_cube, lift_R, lift_L);
 		drivetrain.drive_inches(16, 20);
 		pros::delay(200);
 
+		// Angling for placing the first cube
 		drivetrain.turn_degrees(21*reverse, imu);
 		lift_to_position(low_tower, lift_R, lift_L);
 		drivetrain.drive_inches(20, 70, 5000);
@@ -162,20 +162,20 @@ void autonomous() {
 		intake_L.move(0);
 		lift_to_position(low_tower, lift_R, lift_L);
 
+		// Place the first cube
 		intake_R.move(-127);
 		intake_L.move(-127);
 		pros::delay(1000);
 		intake_R.move(0);
 		intake_L.move(0);
 
+		//Angling for placing the second cube
 		drivetrain.drive_inches(-20, 50);
 		intake_R.move(127);
 		intake_L.move(127);
 		drivetrain.turn_degrees(-21*reverse, imu);
-
 		drivetrain.drive_inches(-14, 50);
 		drivetrain.turn_degrees(-90*reverse, imu);
-
 		lift_to_position(mid_tower, lift_R, lift_L);
 		drivetrain.drive_inches(18, 70);
 		intake_R.move(0);
@@ -183,12 +183,14 @@ void autonomous() {
 		lift_to_position(mid_tower, lift_R, lift_L);
 		drivetrain.drive_inches(6, 70);
 
+		//Placing the second cube.
 		intake_R.move(-127);
 		intake_L.move(-127);
 		pros::delay(3000);
 		intake_R.move(0);
 		intake_L.move(0);
 
+		//Backup and stop
 		drivetrain.drive_inches(-24, 50);
 
 	}
@@ -233,27 +235,28 @@ void opcontrol() {
 	bool intaking = false;
 
 	while (true) {
-		double precision_mult = 1;
 
+		//Activating precision mode, which divides the power of all movements by 2
+		double precision_mult = 1;
 		if(master.get_digital(DIGITAL_L2)) {
 			precision_mult = .5;
 		}
 
-
-		double x = master.get_analog(ANALOG_LEFT_X);
+		//Drivetrain control.
+		//Both turning and normal driving inputs are placed on an exponential curve (2^(.06*input)-1)
+		//This allows for faster and more precise driving.
 		double y = master.get_analog(ANALOG_LEFT_Y);
+		y = pow(2,.06*abs(y))*abs(y)/y-1;
 		double turn = master.get_analog(ANALOG_RIGHT_X);
-
-		//drivetrain.print_position();
-		printf("Lift positions (r, l): (%f, %f)\n", lift_R.get_position(), lift_L.get_position());
-
-		if(turn != 0) {
-			drivetrain.turn(turn);
+		double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
+		if(abs(turn) > 5 ) {
+			drivetrain.turn(curved_turn);
 		}
 		else {
 			drivetrain.drive(y);
 		}
 
+		//Intake control
 		if(master.get_digital(DIGITAL_UP)) {
 			printf("intake!\n");
 			intake_R.move(127*precision_mult);
@@ -273,6 +276,8 @@ void opcontrol() {
 			intaking = false;
 		}
 
+
+		//Lift Control
 		if(master.get_digital(DIGITAL_R1)) {
 			lift_R.move(150*precision_mult);
 			lift_L.move(150*precision_mult);
@@ -295,10 +300,7 @@ void opcontrol() {
 			lift_to_position(mid_tower, lift_R, lift_L);
 		}
 
-
-
 		pros::delay(2);
-		//pros::lcd::clear();
 
 	}
 }

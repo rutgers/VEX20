@@ -6,7 +6,7 @@ uint8_t imu_port = 19;
 pros::Imu *imu;
 
 bool skills = false;
-bool red = true;
+bool red = false;
 
 //preset lift heights in ticks
 double bottom = 0;
@@ -67,6 +67,8 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 		if(passed_time > 2000) {
 			break;
 		}
+
+		pros::delay(dt);
 
 	}
 	lift_r.move(0);
@@ -160,9 +162,9 @@ void autonomous() {
 		pros::delay(200);
 
 		// Angling for placing the first cube
-		drivetrain.turn_degrees(21*reverse, imu);
+		drivetrain.turn_degrees(20*reverse, imu);
 		lift_to_position(low_tower, lift_R, lift_L);
-		drivetrain.drive_inches(20, 70, 5000);
+		drivetrain.drive_inches(18, 70, 5000);
 		intake_R.move(0);
 		intake_L.move(0);
 		lift_to_position(low_tower, lift_R, lift_L);
@@ -175,10 +177,10 @@ void autonomous() {
 		intake_L.move(0);
 
 		//Angling for placing the second cube
-		drivetrain.drive_inches(-20, 50);
+		drivetrain.drive_inches(-18, 50);
 		intake_R.move(127);
 		intake_L.move(127);
-		drivetrain.turn_degrees(-21*reverse, imu);
+		drivetrain.turn_degrees(-20*reverse, imu);
 		drivetrain.drive_inches(-14, 50);
 		drivetrain.turn_degrees(-90*reverse, imu);
 		lift_to_position(mid_tower, lift_R, lift_L);

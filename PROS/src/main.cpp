@@ -186,7 +186,7 @@ void autonomous() {
 
 		// Angling for the second set of cubes
 		drivetrain.turn_degrees(90*reverse, imu, 3000);
-		drivetrain.drive_inches(18, 60, 5000);
+		drivetrain.drive_inches(20, 60, 5000);
 		drivetrain.turn_degrees(-90*reverse, imu, 3000);
 
 		// Returning to the wall

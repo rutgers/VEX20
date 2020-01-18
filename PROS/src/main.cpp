@@ -63,6 +63,11 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 		lift_r.move(r_output*127);
 		lift_l.move(l_output*127);
 		passed_time = passed_time + dt;
+
+		if(passed_time > 2000) {
+			break;
+		}
+
 	}
 	lift_r.move(0);
 	lift_l.move(0);

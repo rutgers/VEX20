@@ -8,7 +8,7 @@ uint8_t imu_port = 16;
 pros::Imu *imu;
 
 //SETTINGS FOR AUTON MODES
-bool red = false;
+bool red = true;
 bool skills = false;
 bool lowering = false;
 
@@ -187,7 +187,7 @@ void autonomous() {
 		// Angling for the second set of cubes
 		drivetrain.turn_degrees(90*reverse, imu, 3000);
 		drivetrain.drive_inches(20, 60, 5000);
-		drivetrain.turn_degrees(-90*reverse, imu, 3000);
+		drivetrain.turn_degrees(-90*reverse, imu, 6000);
 
 		// Returning to the wall
 		drivetrain.drive(-60);
@@ -211,7 +211,7 @@ void autonomous() {
 		pros::delay(4500);
 
 		// Angling for stacking
-		drivetrain.drive_inches(6);
+		drivetrain.drive_inches(8);
 		drivetrain.turn_degrees(-96*reverse, imu, 3000);
 		drivetrain.drive_inches(25, 40, 5000);
 

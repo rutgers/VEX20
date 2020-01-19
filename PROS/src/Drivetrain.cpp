@@ -53,12 +53,16 @@ public:
     // pros::Motor *midR = new pros::Motor(m_ports[5], gearset);
 
     pros::Motor frontR (m_ports[0], gearset);
+    frontR.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     motors.push_back(frontR);
     pros::Motor frontL (m_ports[1], gearset, 1);
+    frontL.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     motors.push_back(frontL);
     pros::Motor rearL (m_ports[2], gearset);
+    rearL.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     motors.push_back(rearL);
     pros::Motor rearR (m_ports[3], gearset, 1);
+    rearR.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     motors.push_back(rearR);
 
     printf("%d\n", motors.size());

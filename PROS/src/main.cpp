@@ -257,7 +257,7 @@ void opcontrol() {
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 		double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
 		if(abs(turn) > 5 ) {
-			drivetrain.turn(curved_turn);
+			drivetrain.turn(curved_turn/2);
 		}
 		else {
 			drivetrain.drive(y);

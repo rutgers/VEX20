@@ -150,14 +150,13 @@ public:
 
   //Uses a PID loop to turn a specified number of degrees
   //Uses an PID controller attached to the rotational reading of an IMU to control turning and turns the motors based on that readout
-  void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000)
+  void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000, double max_power = 50)
   {
     //PID coefficients for turning
     double kp = .2;
     double ki = .000001;
     double kd = -.005;
     double e_t = 1;
-    double max_power = 50;
     degrees = -degrees;
 
     //Update the PID controller with the new target

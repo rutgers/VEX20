@@ -8,7 +8,7 @@ uint8_t imu_port = 16;
 pros::Imu *imu;
 
 //SETTINGS FOR AUTON MODES
-bool red = false;
+bool red = true;
 bool skills = false;
 bool lowering = false;
 
@@ -190,7 +190,7 @@ void autonomous() {
 		// Angling for the second set of cubes
 		drivetrain.turn_degrees(90*reverse, imu, 3000);
 		drivetrain.drive_inches(18, 60, 5000);
-		drivetrain.turn_degrees(-90, imu, 6000, 80);
+		drivetrain.turn_degrees(-90*reverse, imu, 6000, 80);
 
 		// Returning to the wall
 		drivetrain.drive(-60);
@@ -230,6 +230,10 @@ void autonomous() {
 		// Reverse and 180
 		drivetrain.drive_inches(-24, 40, 2000);
 		drivetrain.turn_degrees(180, imu);
+
+		while(!lift_stop.get_value()) {
+			lift.move(-150);
+		}
 	}
 
 }

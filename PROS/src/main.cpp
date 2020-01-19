@@ -8,7 +8,7 @@ uint8_t imu_port = 16;
 pros::Imu *imu;
 
 //SETTINGS FOR AUTON MODES
-bool red = true;
+bool red = false;
 bool skills = false;
 bool lowering = false;
 
@@ -189,7 +189,7 @@ void autonomous() {
 
 		// Angling for the second set of cubes
 		drivetrain.turn_degrees(90*reverse, imu, 3000);
-		drivetrain.drive_inches(18, 60, 5000);
+		drivetrain.drive_inches(16, 60, 5000);
 		drivetrain.turn_degrees(-90*reverse, imu, 6000, 80);
 
 		// Returning to the wall
@@ -199,24 +199,32 @@ void autonomous() {
 		// Grabbing the second set of cubes
 		intake_R.move(255);
 		intake_L.move(255);
-		drivetrain.drive_inches(48, 50, 5000);
 
-		// Angling for the third set of cubes
-		drivetrain.turn_degrees(90*reverse, imu, 3000);
+		drivetrain.drive_inches(25, 50, 5000);
 
-		// Grabbing the third set of cubes
-		drivetrain.drive_inches(18, 50, 5000);
 
-		// Going back to the wall
-		drivetrain.drive_inches(-18, 60, 5000);
-		drivetrain.turn_degrees(-90*reverse, imu, 3000);
+		//TEMP AUTON
+		// drivetrain.drive_inches(44, 50, 5000);
+		//
+		// // Angling for the third set of cubes
+		// drivetrain.turn_degrees(90*reverse, imu, 3000);
+		//
+		// // Grabbing the third set of cubes
+		// drivetrain.drive_inches(14, 50, 5000);
+		//
+		// // Going back to the wall
+		// drivetrain.turn_degrees(-20*reverse, imu, 3000);
+		// drivetrain.drive_inches(-32, 60, 5000);
+		// drivetrain.turn_degrees(-70*reverse, imu, 3000);
 		drivetrain.drive(-60);
 		pros::delay(4500);
 
 		// Angling for stacking
-		drivetrain.drive_inches(8);
-		drivetrain.turn_degrees(-96*reverse, imu, 3000);
-		drivetrain.drive_inches(25, 40, 5000);
+		drivetrain.drive_inches(6);
+
+		move_lift(lift, 2000, master);
+		drivetrain.turn_degrees(-100*reverse, imu, 3000);
+		drivetrain.drive_inches(26, 30, 4000);
 
 		// Placing the Stack
 		intake_R.move(-35);
@@ -234,6 +242,7 @@ void autonomous() {
 		while(!lift_stop.get_value()) {
 			lift.move(-150);
 		}
+		lift.move(0);
 	}
 
 }

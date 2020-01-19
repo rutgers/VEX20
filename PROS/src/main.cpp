@@ -3,7 +3,7 @@
 #include <vector>
 #include <thread>
 
-double lift_place = 10069;
+double lift_place = 10569;
 uint8_t imu_port = 16;
 pros::Imu *imu;
 
@@ -14,7 +14,7 @@ bool lowering = false;
 
 
 
-void move_lift(pros::Motor lift, double ticks) {
+void move_lift(pros::Motor lift, double ticks, pros::Controller controller, bool op_control = false) {
 
 	// Coefficients for the PID controller
 	double kp = .02;
@@ -32,7 +32,6 @@ void move_lift(pros::Motor lift, double ticks) {
 
 	while(!ctrl.check_arrived())
 	{
-
 		double output = ctrl.update(lift.get_position(), dt);
 		printf("lift output: %f\n", output);
 
@@ -44,6 +43,10 @@ void move_lift(pros::Motor lift, double ticks) {
 
 		printf("loop_over!\n");
 		pros::delay(dt);
+
+		if(op_control && controller.get_digital(DIGITAL_L1)) {
+			break;
+		}
 	}
 	printf("done moving!\n");
 	lift.move(0);
@@ -159,7 +162,7 @@ void autonomous() {
 		intake_R.move(0);
 		intake_L.move(0);
 
-		move_lift(lift, lift_place);
+		move_lift(lift, lift_place, master);
 		pros::delay(1000);
 
 		// Reverse and 180
@@ -221,7 +224,7 @@ void autonomous() {
 		pros::delay(500);
 		intake_R.move(0);
 		intake_L.move(0);
-		move_lift(lift, lift_place);
+		move_lift(lift, lift_place, master);
 		pros::delay(1000);
 
 		// Reverse and 180
@@ -272,6 +275,9 @@ void opcontrol() {
 		//This allows for faster and more precise driving.
 		double y = master.get_analog(ANALOG_LEFT_Y);
 		y = pow(2,.06*abs(y))*abs(y)/y-1;
+		if(master.get_digital(DIGITAL_R1)) {
+			y = y*.3;
+		}
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 		double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
 		if(abs(turn) > 5 ) {
@@ -302,7 +308,11 @@ void opcontrol() {
 			pros::delay(500);
 			intake_R.move(0);
 			intake_L.move(0);
-			move_lift(lift, lift_place);
+			move_lift(lift, lift_place, master, true);
+		}
+
+		if(master.get_digital(DIGITAL_X) && master.get_digital(DIGITAL_UP)) {
+			move_lift(lift, lift_place, master, true);
 		}
 
 		//Controls for the lift

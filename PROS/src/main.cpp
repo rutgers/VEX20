@@ -90,6 +90,7 @@ void initialize() {
 	imu = new pros::Imu(imu_port);
 
 	imu -> reset();
+	pros::delay(2000);
 
 }
 
@@ -144,61 +145,85 @@ void autonomous() {
 	if(skills) {
 
 	}
+	else
 	else {
 		// Grab first cube on stack
 		intake_R.move(127);
 		intake_L.move(127);
+
 		drivetrain.drive_inches(22, 50);
-		lift_to_position(two_cube, lift_R, lift_L);
-		drivetrain.drive_inches(12, 25);
-		lift_to_position(two_cube, lift_R, lift_L);
-		pros::delay(500);
-		lift_to_position(two_cube, lift_R, lift_L);
-		drivetrain.drive_inches(-12, 25);
+		drivetrain.turn_degrees(90*reverse, imu);
 
-		// Grab second cube on stack
-		lift_to_position(one_cube, lift_R, lift_L);
-		drivetrain.drive_inches(16, 20);
-		pros::delay(200);
+		drivetrain.drive_inches(24, 50);
+		drivetrain.turn_degrees(45*reverse, imu);
+		drivetrain.drive_inches(10, 30, 2500);
 
-		// Angling for placing the first cube
-		drivetrain.turn_degrees(14*reverse, imu);
-		lift_to_position(low_tower, lift_R, lift_L);
-		drivetrain.drive_inches(18, 100, 5000);
-		intake_R.move(0);
-		intake_L.move(0);
-		lift_to_position(low_tower, lift_R, lift_L);
-
-		// Place the first cube
 		intake_R.move(-127);
 		intake_L.move(-127);
-		pros::delay(1000);
+		pros::delay(2500);true
 		intake_R.move(0);
 		intake_L.move(0);
 
-		//Angling for placing the second cube
-		drivetrain.drive_inches(-14, 50);
-		intake_R.move(127);
-		intake_L.move(127);
-		drivetrain.turn_degrees(-19*reverse, imu);
-		drivetrain.drive_inches(-14, 50);
-		drivetrain.turn_degrees(-90*reverse, imu);
-		lift_to_position(mid_tower, lift_R, lift_L);
-		drivetrain.drive_inches(18, 70);
-		intake_R.move(0);
-		intake_L.move(0);
-		lift_to_position(mid_tower, lift_R, lift_L);
-		drivetrain.drive_inches(6, 70, 3000);
+		lift_to_position(one_cube,lift_R,lift_L);
 
-		//Placing the second cube.
 		intake_R.move(-127);
 		intake_L.move(-127);
-		pros::delay(3000);
-		intake_R.move(0);
-		intake_L.move(0);
+		pros::delay(2500);
 
-		//Backup and stop
-		drivetrain.drive_inches(-24, 50);
+		drivetrain.drive_inches(-6, 50);
+
+
+		// drivetrain.drive_inches(22, 50);
+		// lift_to_position(two_cube, lift_R, lift_L);
+		// drivetrain.drive_inches(12, 25);
+		// lift_to_position(two_cube, lift_R, lift_L);
+		// pros::delay(500);
+		// lift_to_position(two_cube, lift_R, lift_L);
+		// drivetrain.drive_inches(-12, 25);
+		//
+		// // Grab second cube on stack
+		// lift_to_position(one_cube, lift_R, lift_L);
+		// drivetrain.drive_inches(16, 20);
+		// pros::delay(200);
+		//
+		// // Angling for placing the first cube
+		// drivetrain.turn_degrees(14*reverse, imu);
+		// lift_to_position(low_tower, lift_R, lift_L);
+		// drivetrain.drive_inches(18, 100, 5000);
+		// intake_R.move(0);
+		// intake_L.move(0);
+		// lift_to_position(low_tower, lift_R, lift_L);
+		//
+		// // Place the first cube
+		// intake_R.move(-127);
+		// intake_L.move(-127);
+		// pros::delay(1000);
+		// intake_R.move(0);
+		// intake_L.move(0);
+		//
+		// //Angling for placing the second cube
+		// drivetrain.drive_inches(-14, 50);
+		// intake_R.move(127);
+		// intake_L.move(127);
+		// drivetrain.turn_degrees(-19*reverse, imu);
+		// drivetrain.drive_inches(-14, 50);
+		// drivetrain.turn_degrees(-90*reverse, imu);
+		// lift_to_position(mid_tower, lift_R, lift_L);
+		// drivetrain.drive_inches(18, 70);
+		// intake_R.move(0);
+		// intake_L.move(0);
+		// lift_to_position(mid_tower, lift_R, lift_L);
+		// drivetrain.drive_inches(6, 70, 3000);
+		//
+		// //Placing the second cube.
+		// intake_R.move(-127);
+		// intake_L.move(-127);
+		// pros::delay(3000);
+		// intake_R.move(0);
+		// intake_L.move(0);
+		//
+		// //Backup and stop
+		// drivetrain.drive_inches(-24, 50);
 
 	}
 

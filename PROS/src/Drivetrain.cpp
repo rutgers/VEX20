@@ -164,7 +164,7 @@ public:
     double ki = .000001;
     double kd = -.005;
     double e_t = 1;
-    double max_power = 50;
+    double max_power = 40;
     degrees = -degrees;
 
     double initial_rot = imu->get_rotation();

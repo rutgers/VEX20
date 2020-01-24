@@ -258,6 +258,8 @@ void opcontrol() {
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
+  pros::ADIDigitalOut piston ('A');
+
 	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
@@ -331,6 +333,13 @@ void opcontrol() {
 			lift_to_position(mid_tower, lift_R, lift_L);
 		}
 
+		if(master.get_digital(DIGITAL_X)) {
+			piston.set_value(true);
+		}
+		else if(master.get_digital(DIGITAL_Y)) {
+			piston.set_value(false);
+
+		}
 		pros::delay(2);
 
 	}

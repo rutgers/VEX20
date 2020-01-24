@@ -6,7 +6,7 @@ uint8_t imu_port = 19;
 pros::Imu *imu;
 
 bool skills = false;
-bool red = false;
+bool red = true;
 
 //preset lift heights in ticks
 double bottom = 0;
@@ -145,7 +145,6 @@ void autonomous() {
 	if(skills) {
 
 	}
-	else
 	else {
 		// Grab first cube on stack
 		intake_R.move(127);
@@ -160,7 +159,7 @@ void autonomous() {
 
 		intake_R.move(-127);
 		intake_L.move(-127);
-		pros::delay(2500);true
+		pros::delay(2500);
 		intake_R.move(0);
 		intake_L.move(0);
 
@@ -315,8 +314,8 @@ void opcontrol() {
 			lift_L.move(150*precision_mult);
 		}
 		else if(master.get_digital(DIGITAL_R2)) {
-			lift_R.move(-150*precision_mult);
-			lift_L.move(-150*precision_mult);
+			lift_R.move(-70*precision_mult);
+			lift_L.move(-70*precision_mult);
 		}
 		else {
 			lift_R.move(0);

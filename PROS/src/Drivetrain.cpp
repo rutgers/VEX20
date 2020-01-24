@@ -137,11 +137,12 @@ public:
 
   }
 
-  void drive_inches(double inches,double max_power = 127, double timeout = 5000)
+  void drive_inches(double inches, double max_power = 127, double timeout = 5000)
   {
     std:: vector<int> dirs {1, 1, 1, 1};
     drive_ticks(inches*tpi,dirs, max_power, timeout);
   }
+  
   bool check_arrived()
   {
     bool arrived = true;
@@ -158,13 +159,12 @@ public:
 
   }
 
-  void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000)
+  void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000, double max_power = 40)
   {
     double kp = .2;
     double ki = .000001;
     double kd = -.005;
     double e_t = 1;
-    double max_power = 40;
     degrees = -degrees;
 
     double initial_rot = imu->get_rotation();

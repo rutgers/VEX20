@@ -8,8 +8,8 @@ uint8_t imu_port = 16;
 pros::Imu *imu;
 
 //SETTINGS FOR AUTON MODES
-bool red = true;
-bool skills = true;
+bool red = false;
+bool skills = false;
 bool lowering = false;
 
 
@@ -146,11 +146,15 @@ void autonomous() {
 	if(skills) {
 		intake_R.move(255);
 		intake_L.move(255);
-		drivetrain.drive_inches(108, 50, 7000);
+		drivetrain.drive_inches(100, 50, 15000);
 
-		drivetrain.turn_degrees(70*reverse, imu);
+		drivetrain.drive(60);
+		pros::delay(1000);
+		drivetrain.drive(60);
 
-		drivetrain.drive_inches(36, 30, 5000);
+		drivetrain.turn_degrees(-87*reverse, imu);
+
+		drivetrain.drive_inches(29, 40, 5000);
 
 		intake_R.move(-35);
 		intake_L.move(-35);
@@ -162,37 +166,8 @@ void autonomous() {
 		pros::delay(1000);
 
 		// Reverse and 180
-		drivetrain.drive_inches(-20, 40, 2000);
-		drivetrain.turn_degrees(110*reverse, imu);
-
-		while(!lift_stop.get_value()) {
-			lift.move(-127);
-		}
-		lift.move(0);
-
-		drivetrain.drive(-60);
-		pros::delay(1000);
-
-		intake_R.move(255);
-		intake_L.move(255);
-		drivetrain.drive_inches(108, 50, 7000);
-
-		drivetrain.turn_degrees(-45*reverse, imu);
-
-		drivetrain.drive_inches(16, 30, 5000);
-
-		intake_R.move(-35);
-		intake_L.move(-35);
-		pros::delay(500);
-		intake_R.move(0);
-		intake_L.move(0);
-
-		move_lift(lift, lift_place, master);
-		pros::delay(1000);
-
-		// Reverse and 180
-		drivetrain.drive_inches(-20, 40, 2000);
-
+		drivetrain.drive_inches(-24, 40, 2000);
+		drivetrain.turn_degrees(180, imu);
 	}
 	//NORMAL AUTON
 	else {

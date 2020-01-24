@@ -25,7 +25,7 @@ public:
   Drivetrain(std::vector<int> m_ports, pros::motor_gearset_e gearset)
   {
     //Coefficients for PID controllers
-    kp = .0045;
+    kp = .01;
     ki = 0;
     kd = -.05;
     e_t = 100;
@@ -153,7 +153,7 @@ public:
   void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000, double max_power = 50)
   {
     //PID coefficients for turning
-    double kp = .2;
+    double kp = .35;
     double ki = .000001;
     double kd = -.005;
     double e_t = 1;

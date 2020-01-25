@@ -5,11 +5,11 @@
 uint8_t imu_port = 19;
 pros::Imu *imu;
 
-bool skills = false;
+bool skills = true;
 bool red = true;
 
 //preset lift heights in ticks
-double bottom = 0;
+double bottom = 100;
 double one_cube = 1170;
 double two_cube = 1970;
 double three_cube = 2435;
@@ -60,11 +60,18 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 			l_output = l_output/abs(l_output);
 		}
 
-		lift_r.move(r_output*127);
-		lift_l.move(l_output*127);
+		if(r_output < 0) {
+			lift_r.move(r_output*80);
+			lift_l.move(l_output*80);
+		}
+		else {
+			lift_r.move(r_output*127);
+			lift_l.move(l_output*127);
+		}
+
 		passed_time = passed_time + dt;
 
-		if(passed_time > 2000) {
+		if(passed_time > 6000) {
 			break;
 		}
 
@@ -82,6 +89,10 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
+
+	pros::ADIDigitalOut piston ('A');
+	piston.set_value(false);
+
 	printf("initializing\n");
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello PROS User!");
@@ -128,10 +139,12 @@ void autonomous() {
 	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
 	//Lift Motors
-	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+
 
 	//Drivetrain Setup
 	std::vector<int> m_ports = {2, 9, 8, 3};
@@ -143,6 +156,74 @@ void autonomous() {
 	}
 
 	if(skills) {
+		intake_R.move(127);
+		intake_L.move(127);
+
+		drivetrain.drive_inches(24, 50);
+		drivetrain.turn_degrees(90*reverse, imu);
+
+		drivetrain.drive_inches(28, 50);
+		pros::delay(500);
+		drivetrain.turn_degrees(5*reverse, imu);
+		drivetrain.drive_inches(14, 20, 1500);
+		drivetrain.drive_inches(-10, 50, 1500);
+		drivetrain.drive_inches(15, 20, 1500);
+		drivetrain.drive_inches(-10, 20, 1500);
+		lift_to_position(mid_tower,lift_R,lift_L);
+		drivetrain.drive_inches(36, 50, 1500);
+
+		intake_R.move(-127);
+		intake_L.move(-127);
+		pros::delay(1250);
+		intake_R.move(127);
+		intake_L.move(127);
+
+
+
+		drivetrain.drive_inches(-15, 50, 5000);
+		lift_to_position(bottom,lift_R,lift_L);
+		drivetrain.drive_inches(-9, 50, 5000);
+
+		drivetrain.turn_degrees(-138*reverse, imu);
+		drivetrain.drive_inches(24*sqrt(2), 50, 5000);
+		drivetrain.turn_degrees(90*reverse, imu);
+		lift_to_position(low_tower,lift_R,lift_L);
+		drivetrain.drive_inches(24, 50, 3000);
+
+		intake_R.move(-127);
+		intake_L.move(-127);
+		pros::delay(1500);
+		intake_R.move(0);
+		intake_L.move(0);
+		//
+		//
+		// drivetrain.turn_degrees(90*reverse, imu);
+		// drivetrain.drive_inches(24, 50, 5000);
+		//
+		// intake_R.move(127);
+		// intake_L.move(127);
+
+		// drivetrain.drive_inches(10, 50, 2500);
+		// drivetrain.drive_inches(-10, 50, 2500);
+		drivetrain.drive_inches(-36, 50, 2500);
+
+		drivetrain.turn_degrees(-45*reverse, imu);
+
+		drivetrain.drive_inches(90, 50, 2500);
+		drivetrain.turn_degrees(90*reverse, imu);
+		drivetrain.drive_inches(40, 50, 5000);
+		lift_to_position(mid_tower,lift_R,lift_L);
+
+		drivetrain.drive_inches(20, 50, 2500);
+
+		intake_R.move(-127);
+		intake_L.move(-127);
+		pros::delay(2500);
+		intake_R.move(0);
+		intake_L.move(0);
+
+		drivetrain.drive_inches(-20, 50, 2500);
+
 
 	}
 	else {
@@ -253,12 +334,13 @@ void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift_R(10, pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor lift_L(1, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36);
 	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
   pros::ADIDigitalOut piston ('A');
+	piston.set_value(false);
 
 	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
@@ -337,7 +419,7 @@ void opcontrol() {
 			piston.set_value(true);
 		}
 		else if(master.get_digital(DIGITAL_Y)) {
-			piston.set_value(false);
+			lift_to_position(100,lift_R,lift_L);
 
 		}
 		pros::delay(2);

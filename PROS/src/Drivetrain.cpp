@@ -65,6 +65,13 @@ public:
 
   }
 
+  void drive360(double y, double x, double turn) {
+    motors[0].move(y-x-turn);
+    motors[1].move(y+x+turn);
+    motors[2].move(y-x+turn);
+    motors[3].move(y+x-turn);
+  }
+
 
   //Drives motors at the same given power, with the direction reversed on each side of the robot
   //Allows the drivetrain to turn the bot at the given power

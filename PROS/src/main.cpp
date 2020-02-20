@@ -3,8 +3,8 @@
 #include <vector>
 #include <thread>
 
-double lift_place = 10569;
-uint8_t imu_port = 16;
+double lift_place = 14*36*21;
+uint8_t imu_port = 10;
 pros::Imu *imu;
 
 //SETTINGS FOR AUTON MODES
@@ -17,7 +17,7 @@ bool lowering = false;
 void move_lift(pros::Motor lift, double ticks, pros::Controller controller, bool op_control = false) {
 
 	// Coefficients for the PID controller
-	double kp = .02;
+	double kp = .08;
 	double ki = 0;
 	double kd = 10;
 	double e_t = 50;
@@ -123,15 +123,15 @@ void autonomous() {
 	//The controller for this bot
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	//Intake motors
-	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_R(5, pros::E_MOTOR_GEARSET_18);
 	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
 	//Lift Motor and Setup
-	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift(6, pros::E_MOTOR_GEARSET_36);
 	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	//Stop Button to prevent lift from lowering too far
-	pros::ADIDigitalIn lift_stop('A');
+	pros::ADIDigitalIn lift_stop('H');
 	//Setup for the drivetrain
-	std::vector<int> m_ports = {14, 11, 13, 15};
+	std::vector<int> m_ports = {14, 11, 16, 20};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
 
@@ -297,14 +297,20 @@ void autonomous() {
  */
 void opcontrol() {
 	printf("beginning control\n");
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor intake_R(2, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift(3, pros::E_MOTOR_GEARSET_36, 1);
-	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	pros::ADIDigitalIn lift_stop('A');
+	//ROBOT SETUP
 
-	std::vector<int> m_ports = {14, 11, 13, 15};
+	//The controller for this bot
+	pros::Controller master(pros::E_CONTROLLER_MASTER);
+	//Intake motors
+	pros::Motor intake_R(5, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(1, pros::E_MOTOR_GEARSET_18, 1);
+	//Lift Motor and Setup
+	pros::Motor lift(6, pros::E_MOTOR_GEARSET_36);
+	lift.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	//Stop Button to prevent lift from lowering too far
+	pros::ADIDigitalIn lift_stop('H');
+	//Setup for the drivetrain
+	std::vector<int> m_ports = {14, 11, 16, 20};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
 
@@ -322,18 +328,16 @@ void opcontrol() {
 		//Both turning and normal driving inputs are placed on an exponential curve (2^(.06*input)-1)
 		//This allows for faster and more precise driving.
 		double y = master.get_analog(ANALOG_LEFT_Y);
-		y = pow(2,.06*abs(y))*abs(y)/y-1;
+		double x = master.get_analog(ANALOG_LEFT_X);
+		//y = pow(2,.06*abs(y))*abs(y)/y-1;
+		//x = pow(2,.06*abs(x))*abs(x)/x-1;
 		if(master.get_digital(DIGITAL_R1)) {
 			y = y*.3;
+			x = x*.3;
 		}
 		double turn = master.get_analog(ANALOG_RIGHT_X);
-		double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
-		if(abs(turn) > 5 ) {
-			drivetrain.turn(curved_turn);
-		}
-		else {
-			drivetrain.drive(y);
-		}
+		//double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
+		drivetrain.drive360(y,x,turn);
 
 		//Control for the intake motors.
 		if(master.get_digital(DIGITAL_R1)) {

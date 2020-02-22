@@ -23,7 +23,4 @@ using namespace vex;
 int main() {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-
-  // Drives robot forward 6 inches at the default 50% velocity
-  
 }

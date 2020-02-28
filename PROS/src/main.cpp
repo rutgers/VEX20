@@ -8,7 +8,7 @@ uint8_t imu_port = 10;
 pros::Imu *imu;
 
 //SETTINGS FOR AUTON MODES
-bool red = false;
+bool red = true;
 bool skills = false;
 bool lowering = false;
 
@@ -275,7 +275,7 @@ void autonomous() {
 
 		move_lift(lift, 3000, master);
 		drivetrain.turn_degrees(-90*reverse, imu, 3000);
-		drivetrain.drive360(0, -80*reverse, 0);
+		drivetrain.drive360(0, 80*reverse, 0);
 		pros::delay(1500);
 		drivetrain.drive(0);
 		pros::delay(250);

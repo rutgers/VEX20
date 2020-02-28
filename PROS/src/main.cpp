@@ -175,12 +175,10 @@ void autonomous() {
 		drivetrain.drive_inches(20, 50);
 		drivetrain.turn_degrees(90*reverse, imu);
 
-		drivetrain.drive_inches(16, 50, 2000);
+		drivetrain.drive_inches(16, 50, 1000);
 		pros::delay(500);
 		drivetrain.turn_degrees(-5*reverse, imu);
 		drivetrain.drive_inches(14, 20, 1500);
-		drivetrain.drive_inches(-10, 50, 1500);
-		drivetrain.drive_inches(15, 20, 1500);
 		drivetrain.drive_inches(-10, 20, 1500);
 		lift_to_position(mid_tower,lift_R1,lift_L1, lift_R2, lift_L2);
 		drivetrain.drive_inches(36, 50, 1500);
@@ -349,7 +347,7 @@ void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::Motor intake_R(6, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(18, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor intake_L(17, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
 	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
 	pros::Motor lift_R2(11, pros::E_MOTOR_GEARSET_36, 1);

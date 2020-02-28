@@ -5,8 +5,8 @@
 uint8_t imu_port = 19;
 pros::Imu *imu;
 
-bool skills = true;
-bool red = true;
+bool skills = false;
+bool red = false;
 
 //preset lift heights in ticks
 double bottom = 100;
@@ -98,7 +98,7 @@ void lift_to_position(double pos, pros::Motor lift_r1, pros::Motor lift_l1, pros
  */
 void initialize() {
 
-	pros::ADIDigitalOut piston ('A');
+	pros::ADIDigitalOut piston ('H');
 	piston.set_value(false);
 
 	printf("initializing\n");
@@ -163,9 +163,9 @@ void autonomous() {
 	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
-	double reverse = -1;
+	double reverse = 1;
 	if(!red) {
-		reverse = 1;
+		reverse = -1;
 	}
 
 	if(skills) {
@@ -347,7 +347,7 @@ void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::Motor intake_R(6, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(17, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor intake_L(18, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
 	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
 	pros::Motor lift_R2(11, pros::E_MOTOR_GEARSET_36, 1);

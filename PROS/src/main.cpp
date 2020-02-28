@@ -145,9 +145,9 @@ void autonomous() {
 
 	//Reverses turning on the autonomous modes if a preset value (red) is set to true.
 	//Allows for both blue and red opmodes to be matching and edited at the same time
-	int reverse = -1;
+	int reverse = 1;
 	if(!red) {
-		reverse = 1;
+		reverse = -1;
 	}
 
 	//SKILLS

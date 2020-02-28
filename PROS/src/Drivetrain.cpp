@@ -52,10 +52,10 @@ public:
   	// pros::Motor *rearR = new pros::Motor(m_ports[4], gearset);
     // pros::Motor *midR = new pros::Motor(m_ports[5], gearset);
 
-    pros::Motor frontR (m_ports[0], gearset);
+    pros::Motor frontR (m_ports[0], gearset, 1);
     frontR.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     motors.push_back(frontR);
-    pros::Motor frontL (m_ports[1], gearset, 1);
+    pros::Motor frontL (m_ports[1], gearset);
     frontL.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     motors.push_back(frontL);
     pros::Motor rearL (m_ports[2], gearset);
@@ -83,6 +83,13 @@ public:
       motors[i].move(p);
     }
 
+  }
+
+  void drive360(double y, double turn) {
+    motors[0].move(y-turn);
+    motors[1].move(y+turn);
+    motors[2].move(y+turn);
+    motors[3].move(y-turn);
   }
 
   void turn(double p)
@@ -160,7 +167,7 @@ public:
 
   void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000)
   {
-    double kp = .2;
+    double kp = .212;
     double ki = .000001;
     double kd = -.005;
     double e_t = 1;

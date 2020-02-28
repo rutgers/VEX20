@@ -10,12 +10,12 @@ bool red = true;
 
 //preset lift heights in ticks
 double bottom = 100;
-double one_cube = 1170;
-double two_cube = 1970;
-double three_cube = 2435;
-double low_tower = 3018;
-double mid_tower = 3857;
-double high_tower = 3757;
+double one_cube = 450;
+double two_cube = 900;
+double three_cube = 1350;
+double low_tower = 1350;
+double mid_tower = 1720;
+double high_tower = 1720;
 
 /**
  * A callback function for LLEMU's center button.
@@ -30,15 +30,17 @@ void on_center_button() {
 		pros::lcd::set_text(2, "I was pressed!");
 	} else {
 		pros::lcd::clear_line(2);
+
+
 	}
 }
 
-void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
+void lift_to_position(double pos, pros::Motor lift_r1, pros::Motor lift_l1, pros::Motor lift_r2, pros::Motor lift_l2) {
 
-	double kp = .09;
+	double kp = 1;
 	double ki = 0;
 	double kd = -.05;
-	double e_t = 50;
+	double e_t = 25;
 	PID r_control(kp, ki, kd, e_t);
 	PID l_control(kp, ki, kd, e_t);
 
@@ -48,8 +50,8 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 	double dt = 2;
 	double passed_time = 0;
 	while(!r_control.check_arrived() && !l_control.check_arrived()) {
-		double r_output = r_control.update(lift_r.get_position(), dt);
-		double l_output = l_control.update(lift_l.get_position(), dt);
+		double r_output = r_control.update(lift_r1.get_position(), dt);
+		double l_output = l_control.update(lift_l1.get_position(), dt);
 
 		printf("output (r, l)t: (%f, %f)\npassed_time: %f\n", r_output, l_output, passed_time);
 
@@ -61,12 +63,16 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 		}
 
 		if(r_output < 0) {
-			lift_r.move(r_output*80);
-			lift_l.move(l_output*80);
+			lift_r1.move(r_output*80);
+			lift_l1.move(l_output*80);
+			lift_r2.move(r_output*80);
+			lift_l2.move(l_output*80);
 		}
 		else {
-			lift_r.move(r_output*127);
-			lift_l.move(l_output*127);
+			lift_r1.move(r_output*80);
+			lift_l1.move(l_output*80);
+			lift_r2.move(r_output*80);
+			lift_l2.move(l_output*80);
 		}
 
 		passed_time = passed_time + dt;
@@ -78,8 +84,10 @@ void lift_to_position(double pos, pros::Motor lift_r, pros::Motor lift_l) {
 		pros::delay(dt);
 
 	}
-	lift_r.move(0);
-	lift_l.move(0);
+	lift_r1.move(0);
+	lift_l1.move(0);
+	lift_r2.move(0);
+	lift_l2.move(0);
 }
 
 /**
@@ -136,13 +144,18 @@ void competition_initialize() {}
  */
 void autonomous() {
 	//Intake Motors
-	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor intake_R(6, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(18, pros::E_MOTOR_GEARSET_18, 1);
 	//Lift Motors
-	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36);
-	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_R2(11, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L2(15, pros::E_MOTOR_GEARSET_36);
+	lift_R1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_L1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_R2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_L2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
 
 
 
@@ -159,35 +172,37 @@ void autonomous() {
 		intake_R.move(127);
 		intake_L.move(127);
 
-		drivetrain.drive_inches(24, 50);
+		drivetrain.drive_inches(20, 50);
 		drivetrain.turn_degrees(90*reverse, imu);
 
-		drivetrain.drive_inches(28, 50);
+		drivetrain.drive_inches(16, 50, 2000);
 		pros::delay(500);
-		drivetrain.turn_degrees(5*reverse, imu);
+		drivetrain.turn_degrees(-5*reverse, imu);
 		drivetrain.drive_inches(14, 20, 1500);
 		drivetrain.drive_inches(-10, 50, 1500);
 		drivetrain.drive_inches(15, 20, 1500);
 		drivetrain.drive_inches(-10, 20, 1500);
-		lift_to_position(mid_tower,lift_R,lift_L);
+		lift_to_position(mid_tower,lift_R1,lift_L1, lift_R2, lift_L2);
 		drivetrain.drive_inches(36, 50, 1500);
 
 		intake_R.move(-127);
 		intake_L.move(-127);
-		pros::delay(1250);
+		pros::delay(1000);
 		intake_R.move(127);
 		intake_L.move(127);
 
 
 
 		drivetrain.drive_inches(-15, 50, 5000);
-		lift_to_position(bottom,lift_R,lift_L);
+		intake_R.move(0);
+		intake_L.move(0);
+		lift_to_position(bottom,lift_R1,lift_L1, lift_R2, lift_L2);
 		drivetrain.drive_inches(-9, 50, 5000);
 
-		drivetrain.turn_degrees(-138*reverse, imu);
+		drivetrain.turn_degrees(-135*reverse, imu);
 		drivetrain.drive_inches(24*sqrt(2), 50, 5000);
 		drivetrain.turn_degrees(90*reverse, imu);
-		lift_to_position(low_tower,lift_R,lift_L);
+		lift_to_position(low_tower,lift_R1,lift_L1, lift_R2, lift_L2);
 		drivetrain.drive_inches(24, 50, 3000);
 
 		intake_R.move(-127);
@@ -207,12 +222,13 @@ void autonomous() {
 		// drivetrain.drive_inches(-10, 50, 2500);
 		drivetrain.drive_inches(-36, 50, 2500);
 
+		lift_to_position(bottom,lift_R1,lift_L1, lift_R2, lift_L2);
 		drivetrain.turn_degrees(-45*reverse, imu);
 
-		drivetrain.drive_inches(90, 50, 2500);
+		drivetrain.drive_inches(90, 50, 3000);
 		drivetrain.turn_degrees(90*reverse, imu);
-		drivetrain.drive_inches(40, 50, 5000);
-		lift_to_position(mid_tower,lift_R,lift_L);
+		drivetrain.drive_inches(40, 50, 7000);
+		lift_to_position(mid_tower,lift_R1,lift_L1, lift_R2, lift_L2);
 
 		drivetrain.drive_inches(20, 50, 2500);
 
@@ -244,7 +260,7 @@ void autonomous() {
 		intake_R.move(0);
 		intake_L.move(0);
 
-		lift_to_position(one_cube,lift_R,lift_L);
+		lift_to_position(one_cube,lift_R1,lift_L1, lift_R2, lift_L2);
 
 		intake_R.move(-127);
 		intake_L.move(-127);
@@ -332,14 +348,18 @@ void autonomous() {
 void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor intake_R(4, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(20, pros::E_MOTOR_GEARSET_18, 1);
-	pros::Motor lift_R(1, pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor lift_L(10, pros::E_MOTOR_GEARSET_36);
-	lift_R.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	lift_L.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	pros::Motor intake_R(6, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(18, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_R2(11, pros::E_MOTOR_GEARSET_36, 1);
+	pros::Motor lift_L2(15, pros::E_MOTOR_GEARSET_36);
+	lift_R1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_L1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_R2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	lift_L2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-  pros::ADIDigitalOut piston ('A');
+  pros::ADIDigitalOut piston('A');
 	piston.set_value(false);
 
 	std::vector<int> m_ports = {2, 9, 8, 3};
@@ -353,38 +373,38 @@ void opcontrol() {
 
 		//Activating precision mode, which divides the power of all movements by 2
 		double precision_mult = 1;
-		if(master.get_digital(DIGITAL_L2)) {
-			precision_mult = .5;
-		}
+		// if(master.get_digital(DIGITAL_L2)) {
+		// 	precision_mult = .5;
+		// }
 
 		//Drivetrain control.
 		//Both turning and normal driving inputs are placed on an exponential curve (2^(.06*input)-1)
 		//This allows for faster and more precise driving.
 		double y = master.get_analog(ANALOG_LEFT_Y);
-		y = pow(2,.06*abs(y))*abs(y)/y-1;
+		//y = pow(2,.06*abs(y))*abs(y)/y-1;
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 		double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
-		if(abs(turn) > 5 ) {
-			drivetrain.turn(curved_turn/2);
-		}
-		else {
-			drivetrain.drive(y);
-		}
+		// if(abs(turn) > 5 ) {
+		// 	drivetrain.turn(curved_turn/2);
+		// }
+		//else {
+			drivetrain.drive360(y, turn);
+		//}
 
 		//Intake control
-		if(master.get_digital(DIGITAL_UP)) {
+		if(master.get_digital(DIGITAL_UP) || master.get_digital(DIGITAL_L1)) {
 			printf("intake!\n");
 			intake_R.move(127*precision_mult);
 			intake_L.move(127*precision_mult);
 			intaking = true;
 		}
-		else if(master.get_digital(DIGITAL_DOWN)) {
+		else if(master.get_digital(DIGITAL_DOWN) || master.get_digital(DIGITAL_L2)) {
 			printf("outtake!\n");
 			intake_R.move(-127*precision_mult);
 			intake_L.move(-127*precision_mult);
 			intaking = false;
 		}
-		else if(master.get_digital(DIGITAL_LEFT) || !intaking){
+		else if(master.get_digital(DIGITAL_LEFT) || master.get_digital(DIGITAL_RIGHT) || !intaking){
 			printf("STOP TAKING!\n");
 			intake_R.move(0);
 			intake_L.move(0);
@@ -393,33 +413,41 @@ void opcontrol() {
 
 
 		//Lift Control
-		if(master.get_digital(DIGITAL_R1)) {
-			lift_R.move(150*precision_mult);
-			lift_L.move(150*precision_mult);
+		if(master.get_digital(DIGITAL_R1) && lift_R1.get_position() < high_tower) {
+			lift_R1.move(150*precision_mult);
+			lift_L1.move(150*precision_mult);
+			lift_R2.move(150*precision_mult);
+			lift_L2.move(150*precision_mult);
 		}
 		else if(master.get_digital(DIGITAL_R2)) {
-			lift_R.move(-70*precision_mult);
-			lift_L.move(-70*precision_mult);
+			lift_R1.move(-100*precision_mult);
+			lift_L1.move(-100*precision_mult);
+			lift_R2.move(-100*precision_mult);
+			lift_L2.move(-100*precision_mult);
 		}
 		else {
-			lift_R.move(0);
-			lift_L.move(0);
-			lift_R.move_velocity(0);
-			lift_L.move_velocity(0);
+			lift_R1.move(0);
+			lift_L1.move(0);
+			lift_R2.move(0);
+			lift_L2.move(0);
+			lift_R1.move_velocity(0);
+			lift_L1.move_velocity(0);
+			lift_R2.move_velocity(0);
+			lift_L2.move_velocity(0);
 		}
 
 		if(master.get_digital(DIGITAL_A)) {
-			lift_to_position(low_tower, lift_R, lift_L);
+			lift_to_position(low_tower,lift_R1,lift_L1, lift_R2, lift_L2);
 		}
 		else if(master.get_digital(DIGITAL_B)) {
-			lift_to_position(mid_tower, lift_R, lift_L);
+			lift_to_position(mid_tower,lift_R1,lift_L1, lift_R2, lift_L2);
 		}
 
 		if(master.get_digital(DIGITAL_X)) {
 			piston.set_value(true);
 		}
 		else if(master.get_digital(DIGITAL_Y)) {
-			lift_to_position(100,lift_R,lift_L);
+			lift_to_position(100,lift_R1,lift_L1, lift_R2, lift_L2);
 
 		}
 		pros::delay(2);

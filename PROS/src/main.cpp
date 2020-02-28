@@ -3,7 +3,7 @@
 #include <vector>
 #include <thread>
 
-double lift_place = 14*36*21;
+double lift_place = 11084;
 uint8_t imu_port = 10;
 pros::Imu *imu;
 
@@ -17,7 +17,7 @@ bool lowering = false;
 void move_lift(pros::Motor lift, double ticks, pros::Controller controller, bool op_control = false) {
 
 	// Coefficients for the PID controller
-	double kp = .08;
+	double kp = .05;
 	double ki = 0;
 	double kd = 10;
 	double e_t = 50;
@@ -29,6 +29,14 @@ void move_lift(pros::Motor lift, double ticks, pros::Controller controller, bool
 
 	double dt = 2;
 
+	while(lift.get_position() < 7000) {
+		lift.move(127);
+		if(op_control && controller.get_digital(DIGITAL_L1)) {
+			lift.move(0);
+			return;
+		}
+	}
+
 
 	while(!ctrl.check_arrived())
 	{
@@ -38,7 +46,7 @@ void move_lift(pros::Motor lift, double ticks, pros::Controller controller, bool
 		if(abs(output) > 1) {
 			output = output/abs(output);
 		}
-		lift.move(output*100);
+		lift.move(output*70);
 
 
 		printf("loop_over!\n");
@@ -331,10 +339,10 @@ void opcontrol() {
 		double x = master.get_analog(ANALOG_LEFT_X);
 		//y = pow(2,.06*abs(y))*abs(y)/y-1;
 		//x = pow(2,.06*abs(x))*abs(x)/x-1;
-		if(master.get_digital(DIGITAL_R1)) {
-			y = y*.3;
-			x = x*.3;
-		}
+		// if(master.get_digital(DIGITAL_R1)) {
+		// 	y = y*.3;
+		// 	x = x*.3;
+		// }
 		double turn = master.get_analog(ANALOG_RIGHT_X);
 		//double curved_turn = pow(2,.06*abs(turn))*abs(turn)/turn-1;
 		drivetrain.drive360(y,x,turn);

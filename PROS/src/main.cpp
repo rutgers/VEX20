@@ -163,9 +163,9 @@ void autonomous() {
 	std::vector<int> m_ports = {2, 9, 8, 3};
 	Drivetrain drivetrain (m_ports, pros::E_MOTOR_GEARSET_18);
 
-	double reverse = 1;
+	double reverse = -1;
 	if(!red) {
-		reverse = -1;
+		reverse = 1;
 	}
 
 	if(skills) {

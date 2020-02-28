@@ -160,7 +160,7 @@ public:
   void turn_degrees(double degrees, pros::Imu *imu, double timeout = 5000, double max_power = 50)
   {
     //PID coefficients for turning
-    double kp = .35;
+    double kp = .28;
     double ki = .000001;
     double kd = -.005;
     double e_t = 1;

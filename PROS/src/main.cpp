@@ -145,26 +145,27 @@ void autonomous() {
 
 	//Reverses turning on the autonomous modes if a preset value (red) is set to true.
 	//Allows for both blue and red opmodes to be matching and edited at the same time
-	int reverse = 1;
+	int reverse = -1;
 	if(!red) {
-		reverse = -1;
+		reverse = 1;
 	}
 
 	//SKILLS
 	if(skills) {
+
 		intake_R.move(255);
 		intake_L.move(255);
 		drivetrain.drive_inches(108, 60, 10000);
 
-		drivetrain.turn_degrees(68*reverse, imu);
+		drivetrain.turn_degrees(90*reverse, imu);
 
-		drivetrain.drive_inches(24, 50, 3000);
-		drivetrain.drive_inches(12, 30, 3000);
+		drivetrain.drive360(0,80*reverse, 0);
+		pros::delay(2000);
+		drivetrain.drive(0);
+		pros::delay(250);
+		drivetrain.drive_inches(20, 60, 3000);
+		drivetrain.drive_inches(20, 30, 2000);
 
-
-		intake_R.move(-35);
-		intake_L.move(-35);
-		pros::delay(500);
 		intake_R.move(0);
 		intake_L.move(0);
 
@@ -172,8 +173,12 @@ void autonomous() {
 		pros::delay(1000);
 
 		// Reverse and 180
-		drivetrain.drive_inches(-14, 40, 2000);
-		drivetrain.turn_degrees(112*reverse, imu);
+		drivetrain.drive_inches(-6, 40, 2000);
+		drivetrain.drive360(0, -80*reverse, 0);
+		pros::delay(500);
+		drivetrain.drive(0);
+		pros::delay(100);
+		drivetrain.turn_degrees(90*reverse, imu);
 
 		drivetrain.drive(-60);
 		double passed_time = 0;
@@ -196,9 +201,12 @@ void autonomous() {
 
 
 
-		drivetrain.turn_degrees(-33*reverse, imu, 2000);
-
-		drivetrain.drive_inches(20, 30, 3000);
+		drivetrain.turn_degrees(-90*reverse, imu, 2000);
+		drivetrain.drive360(0,-80*reverse, 0);
+		pros::delay(2000);
+		drivetrain.drive(0);
+		pros::delay(250);
+		drivetrain.drive_inches(20, 30, 2000);
 
 		intake_R.move(-35);
 		intake_L.move(-35);
@@ -232,8 +240,8 @@ void autonomous() {
 
 		// Angling for the second set of cubes
 		drivetrain.turn_degrees(90*reverse, imu, 3000);
-		drivetrain.drive_inches(16, 60, 5000);
-		drivetrain.turn_degrees(-90*reverse, imu, 6000, 80);
+		drivetrain.drive_inches(20, 60, 5000);
+		drivetrain.turn_degrees(-90*reverse, imu, 6000);
 
 		// Returning to the wall
 		drivetrain.drive(-60);
@@ -265,9 +273,15 @@ void autonomous() {
 		// Angling for stacking
 		drivetrain.drive_inches(6);
 
-		move_lift(lift, 2000, master);
-		drivetrain.turn_degrees(-100*reverse, imu, 3000);
-		drivetrain.drive_inches(26, 30, 4000);
+		move_lift(lift, 3000, master);
+		drivetrain.turn_degrees(-90*reverse, imu, 3000);
+		drivetrain.drive360(0, -80*reverse, 0);
+		pros::delay(1500);
+		drivetrain.drive(0);
+		pros::delay(250);
+		drivetrain.drive_inches(24, 60, 4000);
+		drivetrain.drive_inches(16, 30, 4000);
+
 
 		// Placing the Stack
 		intake_R.move(-35);
@@ -280,12 +294,7 @@ void autonomous() {
 
 		// Reverse and 180
 		drivetrain.drive_inches(-24, 40, 2000);
-		drivetrain.turn_degrees(180, imu);
 
-		while(!lift_stop.get_value()) {
-			lift.move(-150);
-		}
-		lift.move(0);
 	}
 
 }

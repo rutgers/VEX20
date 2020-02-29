@@ -144,8 +144,8 @@ void competition_initialize() {}
  */
 void autonomous() {
 	//Intake Motors
-	pros::Motor intake_R(6, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(18, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor intake_R(12, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(16, pros::E_MOTOR_GEARSET_18, 1);
 	//Lift Motors
 	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
 	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
@@ -346,8 +346,8 @@ void autonomous() {
 void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor intake_R(6, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(18, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor intake_R(12, pros::E_MOTOR_GEARSET_18);
+	pros::Motor intake_L(16, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
 	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
 	pros::Motor lift_R2(11, pros::E_MOTOR_GEARSET_36, 1);

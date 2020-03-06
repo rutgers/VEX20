@@ -1,6 +1,7 @@
 #include "main.h"
 #include "Drivetrain.cpp"
 #include <vector>
+#include <string>
 
 uint8_t imu_port = 19;
 pros::Imu *imu;
@@ -145,12 +146,12 @@ void competition_initialize() {}
 void autonomous() {
 	//Intake Motors
 	pros::Motor intake_R(12, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(16, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor intake_L(15, pros::E_MOTOR_GEARSET_18, 1);
 	//Lift Motors
 	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
 	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
 	pros::Motor lift_R2(11, pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor lift_L2(15, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_L2(21, pros::E_MOTOR_GEARSET_36);
 	lift_R1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_R2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -347,11 +348,11 @@ void opcontrol() {
 	printf("beginning control\n");
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::Motor intake_R(12, pros::E_MOTOR_GEARSET_18);
-	pros::Motor intake_L(16, pros::E_MOTOR_GEARSET_18, 1);
+	pros::Motor intake_L(15, pros::E_MOTOR_GEARSET_18, 1);
 	pros::Motor lift_R1(1, pros::E_MOTOR_GEARSET_36, 1);
 	pros::Motor lift_L1(10, pros::E_MOTOR_GEARSET_36);
 	pros::Motor lift_R2(11, pros::E_MOTOR_GEARSET_36, 1);
-	pros::Motor lift_L2(15, pros::E_MOTOR_GEARSET_36);
+	pros::Motor lift_L2(21, pros::E_MOTOR_GEARSET_36);
 	lift_R1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_L1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 	lift_R2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -447,6 +448,11 @@ void opcontrol() {
 		else if(master.get_digital(DIGITAL_Y)) {
 			lift_to_position(100,lift_R1,lift_L1, lift_R2, lift_L2);
 
+		}
+
+		master.set_text(1, 7, std::to_string(intake_L.get_current_draw()).c_str());
+		if(intake_L.get_current_draw() > 2200) {
+			master.set_text(1, 0, "ALERT! CURRENT DRAW GREATER THAN LIMIT");
 		}
 		pros::delay(2);
 
